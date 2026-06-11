@@ -37610,6 +37610,100 @@ groups than for single tests.
      ))
 )
 
+(run-tests save-security-analysis
+  ; clean contract: no witnesses, no disclosures, no leaks.
+  ; Note: exported-circuit arguments are treated as witness data, so
+  ; this test writes a literal to the ledger to avoid involving any.
+  (test
+    '(
+      "ledger X: Field;"
+      "export circuit foo(): [] {"
+      "  X = 42 as Field;"
+      "}"
+      )
+    (succeeds)
+    (custom-check
+      (lambda (pass-name x)
+        (let ([fn (format "~a/compiler/security-analysis.json" testdir)])
+          (and (file-exists? fn)
+               (let ([j (read-json-file fn)])
+                 (and (equal? (cdr (assoc "schema_version" j)) "1.0.0")
+                      (equal? (cdr (assoc "status" j)) "clean")
+                      (= (cdr (assoc "witness_count" j)) 0)
+                      (fxzero? (vector-length (cdr (assoc "leaks" j))))
+                      (fxzero? (vector-length (cdr (assoc "disclosures" j))))))))))
+    )
+
+  ; witness with explicit disclose: one disclosure recorded, no leaks.
+  (test
+    '(
+      "ledger X: Field;"
+      "witness w(): Field;"
+      "export circuit foo(): [] {"
+      "  X = disclose(w());"
+      "}"
+      )
+    (succeeds)
+    (custom-check
+      (lambda (pass-name x)
+        (let ([fn (format "~a/compiler/security-analysis.json" testdir)])
+          (and (file-exists? fn)
+               (let ([j (read-json-file fn)])
+                 (let ([disclosures (cdr (assoc "disclosures" j))])
+                   (and (equal? (cdr (assoc "status" j)) "clean")
+                        (= (cdr (assoc "witness_count" j)) 1)
+                        (fx=? (vector-length disclosures) 1)
+                        (let* ([d (vector-ref disclosures 0)]
+                               [witnesses (cdr (assoc "witnesses" d))]
+                               [w (vector-ref witnesses 0)]
+                               [origin (cdr (assoc "origin" w))])
+                          (equal? (cdr (assoc "kind" origin))
+                                  "witness-return-value")))))))))
+    )
+
+  ; circuit-argument flowing into disclose: origin kind reflects the argument.
+  (test
+    '(
+      "ledger X: Field;"
+      "export circuit foo(v: Field): [] {"
+      "  X = disclose(v);"
+      "}"
+      )
+    (succeeds)
+    (custom-check
+      (lambda (pass-name x)
+        (let ([fn (format "~a/compiler/security-analysis.json" testdir)])
+          (and (file-exists? fn)
+               (let ([j (read-json-file fn)])
+                 (let* ([disclosures (cdr (assoc "disclosures" j))]
+                        [d (vector-ref disclosures 0)]
+                        [witnesses (cdr (assoc "witnesses" d))]
+                        [w (vector-ref witnesses 0)]
+                        [origin (cdr (assoc "origin" w))])
+                   (and (equal? (cdr (assoc "kind" origin)) "circuit-argument")
+                        (equal? (cdr (assoc "function" origin)) "foo")
+                        (equal? (cdr (assoc "argument" origin)) "v"))))))))
+    )
+
+  ; unintentional leak (witness flows to ledger without disclose):
+  ; compile fails with the existing witness-disclosure error.
+  ; The JSON file is wiped by the dynamic-wind cleanup, so we only
+  ; assert on the compile failure here; the absence of the file is
+  ; implied by the failed compile.
+  (test
+    '(
+      "ledger X: Field;"
+      "witness w(): Field;"
+      "export circuit foo(): [] {"
+      "  X = w();"
+      "}"
+      )
+    (oops
+      message: "~a:\n  ~?"
+      irritants: '("testfile.compact line 4 char 5" "potential witness-value disclosure must be declared but is not:\n    witness value potentially disclosed:\n      ~a~{~a~}" ("the return value of witness w at line 2 char 1" ("\n    nature of the disclosure:\n      ledger operation might disclose the witness value\n    via this path through the program:\n      the right-hand side of = at line 4 char 5"))))
+    )
+)
+
 (run-tests drop-ledger-runtime
   (test
     '(

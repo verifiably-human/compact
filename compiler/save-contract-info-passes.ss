@@ -26,7 +26,8 @@
           (compiler-version)
           (language-version)
           (runtime-version)
-          (pass-helpers))
+          (pass-helpers)
+          (security-analysis-passes))
 
   ; NB: must come after identify-pure-circuits
   (define-pass save-contract-info : Lnodisclose (ir proof-circuit-name*) -> Lnodisclose ()
@@ -273,6 +274,39 @@
        (serialize-adt "type-name" adt-name adt-arg*)]
       [else (assert cannot-happen)]))
 
+  ;; Serialise the witness-data-flow findings recorded by
+  ;; track-witness-data (analysis-passes.ss). This pass does not
+  ;; perform analysis of its own.
+  ;;
+  ;; The file is created via with-target-ports in passes.ss; on a
+  ;; failing compile the dynamic-wind cleanup deletes it along with
+  ;; the rest of the output. So a security-analysis.json on disk
+  ;; always corresponds to a successful compile.
+  (define-pass save-security-analysis : Lnodisclose (ir) -> Lnodisclose ()
+    (Program : Program (ir) -> Program ()
+      [(program ,src (,contract-name* ...) ((,export-name* ,name*) ...) ,pelt* ...)
+       (let ([witness-count
+              (let loop ([n 0] [pelts pelt*])
+                (if (null? pelts)
+                    n
+                    (loop
+                      (nanopass-case (Lnodisclose Program-Element) (car pelts)
+                        [(witness ,src ,function-name (,arg* ...) ,type) (fx+ n 1)]
+                        [else n])
+                      (cdr pelts))))]
+             [leaks (or (security-leaks-json) '#())]
+             [disclosures (or (security-disclosures-json) '#())]
+             [op (get-target-port 'security-analysis.json)])
+         (print-json op
+           (list
+             (cons "schema_version" "1.0.0")
+             (cons "status" (if (fxzero? (vector-length leaks)) "clean" "leaks-found"))
+             (cons "witness_count" witness-count)
+             (cons "leaks" leaks)
+             (cons "disclosures" disclosures))))
+       ir]))
+
   (define-passes save-contract-info-passes
-    (save-contract-info              Lnodisclose))
+    (save-contract-info              Lnodisclose)
+    (save-security-analysis          Lnodisclose))
 )

@@ -28,7 +28,8 @@
           (pass-helpers)
           (parser)
           (frontend-passes)
-          (standard-library-aliases))
+          (standard-library-aliases)
+          (security-analysis-passes))
 
   ;;; expand-modules-and-types resolves identifier bindings, expands away module and
   ;;; import forms, substitutes generic parameter references with the corresponding types
@@ -5151,11 +5152,12 @@
           [(Abs-multiple abs*) (Abs-multiple (map disclose abs*))]
           [(Abs-single abs) (Abs-single (disclose abs))]))
 
+      (define (source-object-hash src)
+        (+ (source-file-descriptor-checksum (source-object-sfd src))
+           (source-object-bfp src)
+           (* (source-object-efp src) 5)))
+
       (module (record-leak! get-leaks)
-        (define (source-object-hash src)
-          (+ (source-file-descriptor-checksum (source-object-sfd src))
-             (source-object-bfp src)
-             (* (source-object-efp src) 5)))
         (define leak-table (make-hashtable (lambda (x) (+ (source-object-hash (car x)) (string-hash (cdr x)))) equal?))
         (define (record-leak! src what witness*)
           (hashtable-update! leak-table (cons src what)
@@ -5169,6 +5171,83 @@
                     (and (not (source-object<? (car key2) (car key1)))
                          (string<? (cadr key1) (cadr key2)))))
               (vector-map (lambda (key val) (list (car key) (cdr key) val)) vkey vval)))))
+
+      (module (record-disclose! get-disclosures)
+        (define disclose-table (make-hashtable source-object-hash eq?))
+        (define (record-disclose! src witness*)
+          (hashtable-update! disclose-table src
+            (lambda (witness0*) (merge-witnesses witness* witness0*))
+            '()))
+        (define (get-disclosures)
+          (let-values ([(vkey vval) (hashtable-entries disclose-table)])
+            (vector-sort
+              (lambda (e1 e2) (source-object<? (car e1) (car e2)))
+              (vector-map cons vkey vval)))))
+
+      (define (witness-info->json info src)
+        (let ([where (source-object->json src)])
+          (Witness-Info-case info
+            [(Witness-Return-Value function-name)
+             `(("kind" . "witness-return-value")
+               ("function" . ,(symbol->string (id-sym function-name)))
+               ("location" . ,where))]
+            [(Constructor-Argument argument-name)
+             `(("kind" . "constructor-argument")
+               ("argument" . ,(symbol->string (id-sym argument-name)))
+               ("location" . ,where))]
+            [(Circuit-Argument function-name argument-name)
+             `(("kind" . "circuit-argument")
+               ("function" . ,(symbol->string (id-sym function-name)))
+               ("argument" . ,(symbol->string (id-sym argument-name)))
+               ("location" . ,where))])))
+
+      ; Build the JSON form of a single path through the contract.
+      ; pp* is a list of path-point records ordered with the outermost
+      ; (closest to the exposure site) first; we reverse so that the
+      ; JSON reads in data-flow order: witness-source → ... → exposure.
+      (define (path->json pp*)
+        (let ([points (map (lambda (pp)
+                             (let ([exposure (path-point-exposure pp)])
+                               `(("description" . ,(path-point-description pp))
+                                 ("location" . ,(source-object->json (path-point-src pp)))
+                                 ("exposure" . ,(if (string=? exposure "") (void) exposure)))))
+                           (reverse pp*))]
+              [final-exposure (fold-right
+                                (lambda (pp acc)
+                                  (let ([e (path-point-exposure pp)])
+                                    (if (string=? e "")
+                                        acc
+                                        (format "~a ~a" e acc))))
+                                "the witness value"
+                                pp*)])
+          `(("points" . ,(list->vector points))
+            ("final_exposure" . ,final-exposure))))
+
+      (define (witness->json witness)
+        `(("origin" . ,(witness-info->json (witness-info witness) (witness-src witness)))
+          ("paths" . ,(list->vector (map path->json (witness-path* witness))))))
+
+      (define (witnesses->json witness*)
+        (list->vector
+          (map witness->json
+               (sort
+                 (lambda (w1 w2) (source-object<? (witness-src w1) (witness-src w2)))
+                 witness*))))
+
+      (define (build-leaks-json)
+        (vector-map
+          (lambda (leak)
+            `(("location" . ,(source-object->json (car leak)))
+              ("what" . ,(cadr leak))
+              ("witnesses" . ,(witnesses->json (caddr leak)))))
+          (get-leaks)))
+
+      (define (build-disclosures-json)
+        (vector-map
+          (lambda (entry)
+            `(("location" . ,(source-object->json (car entry)))
+              ("witnesses" . ,(witnesses->json (cdr entry)))))
+          (get-disclosures)))
 
       (define (complain src what witness*)
         (define-record-type via
@@ -5243,6 +5322,8 @@
        (vector-for-each
          (lambda (leak) (apply complain leak))
          (get-leaks))
+       (security-leaks-json (build-leaks-json))
+       (security-disclosures-json (build-disclosures-json))
        ir])
     (record-function-kind! : Program-Element (ir) -> * (void)
       [(circuit ,src ,function-name ((,var-name* ,type*) ...) ,type ,expr)
@@ -5459,7 +5540,11 @@
 
       [(call ,src ,function-name ,[* abs*] ...) (handle-call src function-name abs* control-witness* #f)]
 
-      [(disclose ,src ,[* abs]) (disclose abs)]
+      [(disclose ,src ,[* abs])
+       (let ([witness* (abs->witnesses abs)])
+         (unless (null? witness*)
+           (record-disclose! src witness*)))
+       (disclose abs)]
 
       [(new ,src ,type ,[* abs*] ...) (Abs-multiple abs*)]
 

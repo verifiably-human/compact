@@ -144,7 +144,8 @@
                             (lambda (fn) (rm-rf (format "~a/~a" output-directory-pathname fn)))
                             output-subdirectories)
                           (with-target-ports
-                            '((contract-info.json . "compiler/contract-info.json"))
+                            '((contract-info.json . "compiler/contract-info.json")
+                              (security-analysis.json . "compiler/security-analysis.json"))
                             (run-passes save-contract-info-passes analyzed-ir proof-circuit-name*))
                           (with-target-ports
                             (map (lambda (sym) (cons sym (format "zkir/~a.zkir" sym)))
