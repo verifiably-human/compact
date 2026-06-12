@@ -4,8 +4,8 @@ Constraint analysis, security review, and value/privacy-at-risk assessment for M
 
 ## Features
 
-- 🧭 **Contract Profile** (phase 1). Value posture (`none|receives|holds|mints|bridges`), privacy posture, authority model, contract class, and a Value Inventory enumerating every mint/send/receive operation, balance field, and off-chain custody signal. Sets the triage lens before any individual finding.
-- 🎲 **Nonce Hygiene** (phase 2). Inspects the witness JS/TS implementation and the contract source for nonce-reuse failures. Catches constant-return witnesses (`new Uint8Array(N)` etc.) and ledger Counter fields used in hashes without an increment.
+- 🧭 **Contract Profile**. Value posture (`none|receives|holds|mints|bridges`), privacy posture, authority model, contract class, and a Value Inventory enumerating every mint/send/receive operation, balance field, and off-chain custody signal. Sets the triage lens before any individual finding.
+- 🎲 **Nonce Hygiene**. Inspects the witness JS/TS implementation and the contract source for nonce-reuse failures. Catches constant-return witnesses (`new Uint8Array(N)` etc.) and ledger Counter fields used in hashes without an increment.
 - 🔒 **Compiler-grounded security analysis**. Consumes `compiler/security-analysis.json` (COIP v1.0.0) for authoritative witness data-flow paths. Heuristic layer fills categories the compiler does not emit; heuristic findings overlapping a compiler finding are dropped.
 - 📄 **`security-profile.json` sibling artifact**. Versioned (`schema_version: 1.0.0`) machine-readable output containing the profile, value inventory, and nonce analysis. CI gates and dashboards consume this directly.
 - 📊 **Per-circuit constraint metrics** from real compactc output (constraint counts, K-values, proving-time estimates).
