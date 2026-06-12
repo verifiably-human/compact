@@ -2,6 +2,12 @@
 /obj
 /profiled-obj
 /replacement-results.ss
+
+# Chez compile-in-place artifacts when running source via --compile-imported-libraries
+/compiler/*.so
+/third_party/compiler/*.so
+/srcMaps/*.so
+/nanopass-tmp
 .*.sw?
 
 .vscode
