@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+    CSP — defence-in-depth alongside per-interpolation HTML escaping.
+    The report is generated locally from user-supplied .compact source;
+    if an escape is missed, this prevents inline-script execution and
+    external loads. Inline styles are allowed because the generator
+    emits a large stylesheet. img-src includes data:/blob:/file: so
+    embedded visualizations (PNG/SVG) load from disk.
+  -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src 'unsafe-inline'; img-src data: blob: file:; font-src data:;">
+  <title>Circuit Analysis Report - /Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact</title>
+  <style>
+    
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        color: #333333;
+        background: #ffffff;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        padding: 40px 0;
+        border-bottom: 3px solid #4169E1;
+        margin-bottom: 40px;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        color: #4169E1;
+      }
+
+      h2 {
+        font-size: 1.8rem;
+        margin: 40px 0 20px;
+        color: #4169E1;
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 10px;
+      }
+
+      h3 {
+        font-size: 1.3rem;
+        margin: 30px 0 15px;
+        color: #333333;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+        color: #666666;
+      }
+
+      .metadata {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+      }
+
+      .metadata-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .metadata-label {
+        font-size: 0.85rem;
+        color: #999999;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .metadata-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-top: 5px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+      }
+
+      .card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 25px;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+
+      .card-title {
+        font-size: 0.9rem;
+        color: #999999;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+      }
+
+      .card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #4169E1;
+      }
+
+      .card-subtitle {
+        font-size: 0.9rem;
+        color: #666666;
+        margin-top: 5px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: #f8f9fa;
+      }
+
+      thead {
+        background: #e9ecef;
+      }
+
+      th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+      }
+
+      tr:hover {
+        background: #f5f5f5;
+      }
+
+      .complexity-low { color: #28a745; font-weight: 600; }
+      .complexity-medium { color: #ffc107; font-weight: 600; }
+      .complexity-high { color: #fd7e14; font-weight: 600; }
+      .complexity-very-high { color: #dc3545; font-weight: 600; }
+
+      .insights {
+        background: #f8f9fa;
+        border-left: 4px solid #4169E1;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+
+      .insight-item {
+        margin: 15px 0;
+        padding-left: 25px;
+        position: relative;
+      }
+
+      .insight-item::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: #4169E1;
+        font-weight: bold;
+      }
+
+      .recommendations {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+
+      .recommendation-item {
+        margin: 15px 0;
+        padding-left: 25px;
+        position: relative;
+      }
+
+      .recommendation-item::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #28a745;
+        font-weight: bold;
+      }
+
+      .visualization {
+        margin: 40px 0;
+        text-align: center;
+      }
+
+      .visualization img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+
+      .visualization-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333333;
+      }
+
+      .visualization-description {
+        font-size: 0.95rem;
+        color: #666666;
+        margin-bottom: 20px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 15px;
+        padding: 15px;
+        background: rgba(0,0,0,0.03);
+        border-radius: 8px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid rgba(0,0,0,0.2);
+      }
+
+      .legend-label {
+        font-size: 0.9rem;
+        color: #333333;
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 60px;
+        padding-top: 30px;
+        border-top: 2px solid #dee2e6;
+        color: #999999;
+        font-size: 0.9rem;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .badge-success { background: #28a745; color: white; }
+      .badge-warning { background: #ffc107; color: #333; }
+      .badge-danger { background: #dc3545; color: white; }
+
+      /* Security Analysis Styles */
+      .security-summary {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 25px;
+        margin: 30px 0;
+      }
+
+      .risk-score {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 15px 0;
+      }
+
+      .risk-score.low {
+        background: #d4edda;
+        color: #28a745;
+        border: 2px solid #28a745;
+      }
+
+      .risk-score.medium {
+        background: #fff3cd;
+        color: #ffc107;
+        border: 2px solid #ffc107;
+      }
+
+      .risk-score.high {
+        background: #ffe5d0;
+        color: #fd7e14;
+        border: 2px solid #fd7e14;
+      }
+
+      .risk-score.critical {
+        background: #f8d7da;
+        color: #dc3545;
+        border: 2px solid #dc3545;
+      }
+
+      .findings-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .finding-count {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+        border-radius: 6px;
+        background: #e9ecef;
+        font-weight: 600;
+      }
+
+      .finding-count .count {
+        font-size: 1.2rem;
+      }
+
+      .finding-count.critical { border-left: 4px solid #dc3545; }
+      .finding-count.high { border-left: 4px solid #fd7e14; }
+      .finding-count.medium { border-left: 4px solid #ffc107; }
+      .finding-count.low { border-left: 4px solid #17a2b8; }
+      .finding-count.info { border-left: 4px solid #6c757d; }
+
+      .security-finding {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #dee2e6;
+      }
+
+      .security-finding.critical { border-left-color: #dc3545; }
+      .security-finding.high { border-left-color: #fd7e14; }
+      .security-finding.medium { border-left-color: #ffc107; }
+      .security-finding.low { border-left-color: #17a2b8; }
+      .security-finding.info { border-left-color: #6c757d; }
+
+      .finding-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .finding-severity {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .finding-severity.critical {
+        background: #dc3545;
+        color: white;
+      }
+
+      .finding-severity.high {
+        background: #fd7e14;
+        color: white;
+      }
+
+      .finding-severity.medium {
+        background: #ffc107;
+        color: #333;
+      }
+
+      .finding-severity.low {
+        background: #17a2b8;
+        color: white;
+      }
+
+      .finding-severity.info {
+        background: #6c757d;
+        color: white;
+      }
+
+      .finding-code {
+        background: #f5f5f5;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 12px;
+        margin: 10px 0;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .no-findings {
+        background: #d4edda;
+        border: 1px solid #28a745;
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+        color: #28a745;
+        font-size: 1.1rem;
+        margin: 20px 0;
+      }
+
+      /* Contract Profile section */
+      .contract-profile {
+        margin: 30px 0;
+      }
+      .contract-profile h2 { margin-bottom: 16px; }
+      .contract-profile h3 { font-size: 1.1rem; margin: 14px 0 8px 0; }
+      .profile-postures, .profile-surface, .profile-inventory {
+        background: #f8f9fa;
+        border-left: 4px solid #2c5aa0;
+        padding: 12px 18px;
+        margin-bottom: 12px;
+        border-radius: 4px;
+      }
+      .profile-row {
+        padding: 4px 0;
+        font-size: 0.95rem;
+      }
+      .profile-row strong { display: inline-block; min-width: 200px; }
+      .profile-badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-right: 6px;
+      }
+      .profile-flag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: #dc3545;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-left: 6px;
+      }
+      .profile-mute {
+        color: #666;
+        font-size: 0.85rem;
+        font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+      }
+      .profile-surface-item {
+        padding: 3px 0;
+        font-size: 0.9rem;
+      }
+      .profile-surface-label {
+        font-weight: 600;
+        display: inline-block;
+        min-width: 140px;
+      }
+      .profile-surface-value {
+        font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+        color: #444;
+      }
+
+      /* Highlighted summary card (worst-case proving time) */
+      .card.highlight {
+        border-left: 4px solid #2c5aa0;
+        background: #f0f4f8;
+      }
+      .card.highlight .card-value {
+        color: #2c5aa0;
+      }
+
+      /* Cumulative-metrics details block */
+      .cumulative-metrics {
+        margin: 20px 0;
+        padding: 12px 18px;
+        background: #fafafa;
+        border: 1px dashed #ccc;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+      .cumulative-metrics > summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #666;
+      }
+      .cumulative-metrics p,
+      .cumulative-metrics ul {
+        margin-top: 10px;
+        color: #555;
+      }
+      .cumulative-metrics em {
+        color: #777;
+        font-size: 0.85em;
+      }
+
+      /* Nonce Hygiene section */
+      .nonce-hygiene { margin: 30px 0; }
+      .nonce-witness-status {
+        padding: 10px 14px;
+        background: #f0f4f8;
+        border-left: 4px solid #2c5aa0;
+        border-radius: 4px;
+        margin-bottom: 14px;
+        font-size: 0.9rem;
+      }
+      .nonce-finding {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-left: 4px solid #f44336;
+        padding: 14px 18px;
+        margin-bottom: 12px;
+        border-radius: 4px;
+      }
+      .nonce-finding-header {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+      }
+      .nonce-finding-severity {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 4px;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      .nonce-finding-kind {
+        font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+        color: #666;
+        font-size: 0.9rem;
+      }
+      .nonce-finding-id {
+        margin-left: auto;
+        font-size: 0.8rem;
+        color: #999;
+      }
+      .nonce-claim {
+        font-style: italic;
+        color: #555;
+        font-size: 0.9rem;
+      }
+      .nonce-sites ul { margin: 6px 0; padding-left: 22px; }
+      .nonce-sites li { padding: 4px 0; font-size: 0.9rem; }
+      .nonce-site-kind {
+        display: inline-block;
+        padding: 1px 7px;
+        background: #e9ecef;
+        border-radius: 3px;
+        font-size: 0.75rem;
+        font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+        margin-right: 6px;
+      }
+      .nonce-snippet {
+        margin: 6px 0;
+        padding: 6px 10px;
+        background: #f5f5f5;
+        border-radius: 3px;
+        font-size: 0.85rem;
+        overflow-x: auto;
+        white-space: pre-wrap;
+      }
+      .nonce-recommendation {
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: #e7f3ff;
+        border-radius: 3px;
+        font-size: 0.9rem;
+      }
+
+      /* Policy Assessment block */
+      .policy-assessment { margin: 24px 0; }
+      .policy-banner {
+        padding: 18px 24px;
+        border-radius: 6px;
+        color: white;
+        margin-bottom: 16px;
+      }
+      .policy-banner-label {
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+      }
+      .policy-banner-sub {
+        font-size: 0.9rem;
+        opacity: 0.95;
+      }
+      .policy-reasons {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .policy-reason {
+        background: #fff;
+        border: 1px solid #ddd;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+      .policy-reason-severity {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-right: 8px;
+      }
+      .policy-reason-rule {
+        font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+        color: #777;
+        font-size: 0.85rem;
+        margin-right: 8px;
+      }
+      .policy-no-reasons {
+        padding: 12px 16px;
+        background: #d4edda;
+        border-radius: 4px;
+        color: #155724;
+      }
+
+      /* Correlators section */
+      .correlators { margin: 30px 0; }
+      .correlator-finding {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-left: 4px solid #f44336;
+        padding: 14px 18px;
+        margin-bottom: 12px;
+        border-radius: 4px;
+      }
+      .correlator-header {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .correlator-severity {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 4px;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      .correlator-id {
+        margin-left: auto;
+        font-size: 0.8rem;
+        color: #999;
+      }
+      .correlator-summary {
+        font-style: italic;
+        color: #555;
+        font-size: 0.9rem;
+      }
+      .correlator-intent {
+        background: #d4edda;
+        padding: 6px 10px;
+        border-radius: 3px;
+        font-size: 0.85rem;
+        margin: 8px 0;
+      }
+      .correlator-sites ul { margin: 6px 0; padding-left: 22px; }
+      .correlator-sites li { padding: 4px 0; font-size: 0.9rem; }
+      .correlator-exposure {
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 3px;
+        font-size: 0.85rem;
+        margin: 8px 0;
+      }
+      .correlator-recommendation {
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: #e7f3ff;
+        border-radius: 3px;
+        font-size: 0.9rem;
+      }
+
+      @media print {
+        body { background: white; color: black; }
+        .card { page-break-inside: avoid; }
+        .visualization { page-break-inside: avoid; }
+      }
+
+      @media (max-width: 768px) {
+        .metadata { flex-direction: column; gap: 15px; }
+        .summary-grid { grid-template-columns: 1fr; }
+        h1 { font-size: 2rem; }
+        h2 { font-size: 1.5rem; }
+      }
+    
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <header>
+      <h1>🎨 Circuit Analysis Report</h1>
+      <p class="subtitle">/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact</p>
+      <div class="metadata">
+        <div class="metadata-item">
+          <span class="metadata-label">Generated</span>
+          <span class="metadata-value">6/12/2026, 9:04:57 AM</span>
+        </div>
+        <div class="metadata-item">
+          <span class="metadata-label">Compiler Version</span>
+          <span class="metadata-value">0.5.1</span>
+        </div>
+        <div class="metadata-item">
+          <span class="metadata-label">Compilation Time</span>
+          <span class="metadata-value">0.36s</span>
+        </div>
+      </div>
+    </header>
+    
+    
+    <section class="policy-assessment">
+      <h2>🚦 Deploy Policy Assessment</h2>
+      <div class="policy-banner" style="background-color: #fd7e14">
+        <div class="policy-banner-label">⚠️ WARN</div>
+        <div class="policy-banner-sub">Recommendation derived from contract profile + findings via explicit rules. Each rule that fired contributes one reason below.</div>
+      </div>
+      <ul class="policy-reasons">
+            <li class="policy-reason policy-reason-warn">
+              <span class="policy-reason-severity" style="background-color: #fd7e14">WARN</span>
+              <code class="policy-reason-rule">high-severity-security-findings</code>
+              3 high-severity security finding(s): [Heuristic] Unvalidated user input in state mutation: adminPk; [Heuristic] Unvalidated user input in state mutation: account; [Heuristic] Unvalidated user input in state mutation: account
+            </li></ul>
+    </section>
+    
+    <section class="contract-profile">
+      <h2>🧭 Contract Profile</h2>
+      <div class="profile-postures">
+        <div class="profile-row"><strong>Value posture:</strong> <span class="profile-badge" style="background-color: #dc3545">bridges</span></div>
+        <div class="profile-row"><strong>Privacy posture:</strong> <span class="profile-badge" style="background-color: #ffc107">selective</span></div>
+        <div class="profile-row"><strong>Authority model:</strong> <span class="profile-badge" style="background-color: #fd7e14">single-owner</span></div>
+        <div class="profile-row"><strong>Circuits:</strong>
+          21/33 exported,
+          2 witness function(s)
+        </div>
+      </div>
+      <div class="profile-surface">
+        <h3>Ledger Surface (24 fields,
+          1 sealed)</h3>
+        
+        <div class="profile-surface-item">
+          <span class="profile-surface-label">Balance-like:</span>
+          <span class="profile-surface-value">totalSupply, balances, vaultBalance</span>
+        </div>
+        
+        <div class="profile-surface-item">
+          <span class="profile-surface-label">Commitment-like:</span>
+          <span class="profile-surface-value">lastOpCommitment</span>
+        </div>
+        
+        
+        <div class="profile-surface-item">
+          <span class="profile-surface-label">Counter-like:</span>
+          <span class="profile-surface-value">mintCount, burnCount, transferCount, freezeActionCount, forceTransferCount, policyUpdateCount</span>
+        </div>
+        
+        <div class="profile-surface-item">
+          <span class="profile-surface-label">Key-like:</span>
+          <span class="profile-surface-value">owner, admins</span>
+        </div>
+      </div>
+      
+        <div class="profile-inventory">
+          <h3>Value Inventory</h3>
+          <div class="profile-row"><strong>Estimated class:</strong>
+            <span class="profile-badge" style="background-color: #6c757d">custodial-token</span>
+            <span class="profile-flag">value-holding</span>
+          </div>
+          <div class="profile-row"><strong>Mint operations:</strong> 3
+            <span class="profile-mute">(mintCustodial:mintShieldedToken[auth=unclear], mintToHolder:mintShieldedToken[auth=unclear], prepareWithdraw:mintUnshieldedToken[auth=unclear])</span>
+          </div>
+          <div class="profile-row"><strong>Send operations:</strong> 3</div>
+          <div class="profile-row"><strong>Receive operations:</strong> 1</div>
+          <div class="profile-row"><strong>Balance fields:</strong> 3
+            <span class="profile-mute">(totalSupply [no overflow assert], balances [no overflow assert], vaultBalance [no overflow assert])</span>
+          </div>
+          <div class="profile-row"><strong>Commitment+Nullifier pairs:</strong> 0</div>
+          <div class="profile-row"><strong>Max-supply constraints:</strong> 0</div>
+          <div class="profile-row"><strong>Off-chain custody hints:</strong>
+            <span class="profile-mute">vaultBalance</span>
+          </div>
+        </div>
+    </section>
+    
+    
+    <section>
+      <h2>📊 Summary</h2>
+      <div class="summary-grid">
+        <div class="card">
+          <div class="card-title">Total Circuits</div>
+          <div class="card-value">21</div>
+          <div class="card-subtitle">Exported circuits</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Total Constraints</div>
+          <div class="card-value">3,186,372</div>
+          <div class="card-subtitle">Sum across circuits (not per-tx)</div>
+        </div>
+        <div class="card highlight">
+          <div class="card-title">Worst-case Proving Time</div>
+          <div class="card-value">30.1s</div>
+          <div class="card-subtitle">Slowest single call (mintCustodial)</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Median Proving Time</div>
+          <div class="card-value">8.3s</div>
+          <div class="card-subtitle">Typical single call</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Peak Memory</div>
+          <div class="card-value">549 MB</div>
+          <div class="card-subtitle">Slowest single call (mintCustodial)</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Average K-Value</div>
+          <div class="card-value">18.3</div>
+          <div class="card-subtitle">Plonk domain size</div>
+        </div>
+      </div>
+      <details class="cumulative-metrics">
+        <summary>Cumulative metrics (not a real workload)</summary>
+        <p>The numbers below assume every circuit is proved once in sequence on a single machine.
+        Real users invoke one circuit per transaction; these are useful only for full-test-suite
+        timing budgets, deploy-time stress estimation, or batch-proving infrastructure planning.</p>
+        <ul>
+          <li><strong>If every circuit were proved once (sequential):</strong> 241.1s</li>
+          <li><strong>Sum of per-circuit memory estimates:</strong> 10897 MB
+            <em>(parallel proof workers would each need their own peak memory; this number is not the
+            host's required RAM for normal operation)</em></li>
+        </ul>
+      </details>
+    </section>
+    
+    
+    <section>
+      <h2>🔒 Security Analysis</h2>
+      <div class="security-summary">
+        <div class="risk-score" style="border-color: #b71c1c">
+          <div class="risk-label">Overall Risk Score</div>
+          <div class="risk-value" style="color: #b71c1c">100/100</div>
+          <div class="risk-level">CRITICAL</div>
+        </div>
+        <div class="findings-summary">
+          <div class="finding-count critical">
+            <span class="count">0</span>
+            <span class="label">Critical</span>
+          </div>
+          <div class="finding-count high">
+            <span class="count">3</span>
+            <span class="label">High</span>
+          </div>
+          <div class="finding-count medium">
+            <span class="count">21</span>
+            <span class="label">Medium</span>
+          </div>
+          <div class="finding-count low">
+            <span class="count">0</span>
+            <span class="label">Low</span>
+          </div>
+          <div class="finding-count info">
+            <span class="count">0</span>
+            <span class="label">Info</span>
+          </div>
+        </div>
+      </div>
+
+      
+        <h3>Security Findings</h3>
+        <div class="security-findings">
+          
+        <div class="security-finding severity-high">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #f44336">🟠 HIGH</span>
+            <span class="finding-type">taint</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unvalidated user input in state mutation: account</h4>
+          <p class="finding-description">Circuit &quot;freeze&quot; uses user-controlled input &quot;account&quot; in state mutation without validation.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "freeze"
+              <pre class="finding-code">frozenAccounts.insert(d_account)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> User could manipulate state with malicious inputs, potentially corrupting contract state.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add validation assertion before using user input: assert(account &lt; MAX_VALUE, &quot;Invalid input&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-high">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #f44336">🟠 HIGH</span>
+            <span class="finding-type">taint</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unvalidated user input in state mutation: account</h4>
+          <p class="finding-description">Circuit &quot;addToAllowlist&quot; uses user-controlled input &quot;account&quot; in state mutation without validation.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "addToAllowlist"
+              <pre class="finding-code">allowedAccounts.insert(disclose(account)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> User could manipulate state with malicious inputs, potentially corrupting contract state.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add validation assertion before using user input: assert(account &lt; MAX_VALUE, &quot;Invalid input&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-high">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #f44336">🟠 HIGH</span>
+            <span class="finding-type">taint</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unvalidated user input in state mutation: adminPk</h4>
+          <p class="finding-description">Circuit &quot;addAdmin&quot; uses user-controlled input &quot;adminPk&quot; in state mutation without validation.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "addAdmin"
+              <pre class="finding-code">admins.insert(disclose(adminPk)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> User could manipulate state with malicious inputs, potentially corrupting contract state.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add validation assertion before using user input: assert(adminPk &lt; MAX_VALUE, &quot;Invalid input&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">privacy-leak</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Exported circuit returns disclosed data: mergeTwoCoins</h4>
+          <p class="finding-description">Circuit &quot;mergeTwoCoins&quot; is exported, returns ShieldedCoinInfo, and contains 3 disclose() call(s). The compiler&#039;s witness-protection analysis (compiler/security-analysis.json) is authoritative for what reaches the return value; this heuristic only flags the cooccurrence and is a prompt for manual review of the disclose intent on each site.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "mergeTwoCoins"
+              <pre class="finding-code">disclose(coin1); disclose(coin2); disclose(callerKey)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> Potential information leak if disclosed data can be correlated with private inputs.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Cross-check the compiler&#039;s security-analysis.json disclosures for this circuit. Each disclosure entry there carries the full data-flow path from witness origin to disclose site; confirm each is intentional.
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">privacy-leak</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Exported circuit returns disclosed data: mergeWithImmediate</h4>
+          <p class="finding-description">Circuit &quot;mergeWithImmediate&quot; is exported, returns ShieldedCoinInfo, and contains 3 disclose() call(s). The compiler&#039;s witness-protection analysis (compiler/security-analysis.json) is authoritative for what reaches the return value; this heuristic only flags the cooccurrence and is a prompt for manual review of the disclose intent on each site.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "mergeWithImmediate"
+              <pre class="finding-code">disclose(confirmed); disclose(immediate); disclose(callerKey)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> Potential information leak if disclosed data can be correlated with private inputs.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Cross-check the compiler&#039;s security-analysis.json disclosures for this circuit. Each disclosure entry there carries the full data-flow path from witness origin to disclose site; confirm each is intentional.
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">privacy-leak</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Exported circuit returns disclosed data: mintToHolder</h4>
+          <p class="finding-description">Circuit &quot;mintToHolder&quot; is exported, returns ShieldedSendResult, and contains 6 disclose() call(s). The compiler&#039;s witness-protection analysis (compiler/security-analysis.json) is authoritative for what reaches the return value; this heuristic only flags the cooccurrence and is a prompt for manual review of the disclose intent on each site.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "mintToHolder"
+              <pre class="finding-code">disclose(amount); disclose(domainSep); disclose(nonce); disclose((totalSupply + (d_amount as Uint&lt;128&gt;); disclose(coin); disclose(recipientKey)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> Potential information leak if disclosed data can be correlated with private inputs.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Cross-check the compiler&#039;s security-analysis.json disclosures for this circuit. Each disclosure entry there carries the full data-flow path from witness origin to disclose site; confirm each is intentional.
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">privacy-leak</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Exported circuit returns disclosed data: prepareWithdraw</h4>
+          <p class="finding-description">Circuit &quot;prepareWithdraw&quot; is exported, returns Bytes&lt;32&gt;, and contains 5 disclose() call(s). The compiler&#039;s witness-protection analysis (compiler/security-analysis.json) is authoritative for what reaches the return value; this heuristic only flags the cooccurrence and is a prompt for manual review of the disclose intent on each site.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "prepareWithdraw"
+              <pre class="finding-code">disclose(account); disclose(withdrawValue); disclose((vaultBalance - (d_value as Uint&lt;128&gt;); disclose((totalSupply - (d_value as Uint&lt;128&gt;); disclose(domainSep)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> Potential information leak if disclosed data can be correlated with private inputs.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Cross-check the compiler&#039;s security-analysis.json disclosures for this circuit. Each disclosure entry there carries the full data-flow path from witness origin to disclose site; confirm each is intentional.
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">privacy-leak</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Exported circuit returns disclosed data: shieldedTransfer</h4>
+          <p class="finding-description">Circuit &quot;shieldedTransfer&quot; is exported, returns ShieldedSendResult, and contains 5 disclose() call(s). The compiler&#039;s witness-protection analysis (compiler/security-analysis.json) is authoritative for what reaches the return value; this heuristic only flags the cooccurrence and is a prompt for manual review of the disclose intent on each site.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "shieldedTransfer"
+              <pre class="finding-code">disclose(value); disclose(value); disclose(input); disclose(recipientKey); disclose(value)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> Potential information leak if disclosed data can be correlated with private inputs.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Cross-check the compiler&#039;s security-analysis.json disclosures for this circuit. Each disclosure entry there carries the full data-flow path from witness origin to disclose site; confirm each is intentional.
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">privacy-leak</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Exported circuit returns disclosed data: shieldedTransferToContract</h4>
+          <p class="finding-description">Circuit &quot;shieldedTransferToContract&quot; is exported, returns ShieldedSendResult, and contains 5 disclose() call(s). The compiler&#039;s witness-protection analysis (compiler/security-analysis.json) is authoritative for what reaches the return value; this heuristic only flags the cooccurrence and is a prompt for manual review of the disclose intent on each site.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "shieldedTransferToContract"
+              <pre class="finding-code">disclose(value); disclose(value); disclose(input); disclose(recipient); disclose(value)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> Potential information leak if disclosed data can be correlated with private inputs.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Cross-check the compiler&#039;s security-analysis.json disclosures for this circuit. Each disclosure entry there carries the full data-flow path from witness origin to disclose site; confirm each is intentional.
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: admins</h4>
+          <p class="finding-description">Circuit &quot;addAdmin&quot; modifies &quot;admins&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "addAdmin"
+              <pre class="finding-code">admins.insert(disclose(adminPk)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: allowedAccounts</h4>
+          <p class="finding-description">Circuit &quot;addToAllowlist&quot; modifies &quot;allowedAccounts&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "addToAllowlist"
+              <pre class="finding-code">allowedAccounts.insert(disclose(account)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: balances</h4>
+          <p class="finding-description">Circuit &quot;creditAccount&quot; modifies &quot;balances&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "creditAccount"
+              <pre class="finding-code">balances.insert(account, disclose((current + amount)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: balances</h4>
+          <p class="finding-description">Circuit &quot;debitAccount&quot; modifies &quot;balances&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "debitAccount"
+              <pre class="finding-code">balances.insert(account, disclose((current - amount)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: burnCount</h4>
+          <p class="finding-description">Circuit &quot;burnCustodial&quot; modifies &quot;burnCount&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "burnCustodial"
+              <pre class="finding-code">burnCount.increment(1)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: forceTransferCount</h4>
+          <p class="finding-description">Circuit &quot;forceTransfer&quot; modifies &quot;forceTransferCount&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "forceTransfer"
+              <pre class="finding-code">forceTransferCount.increment(1)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: freezeActionCount</h4>
+          <p class="finding-description">Circuit &quot;freeze&quot; modifies &quot;freezeActionCount&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "freeze"
+              <pre class="finding-code">freezeActionCount.increment(1)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: freezeActionCount</h4>
+          <p class="finding-description">Circuit &quot;unfreeze&quot; modifies &quot;freezeActionCount&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "unfreeze"
+              <pre class="finding-code">freezeActionCount.increment(1)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: frozenAccounts</h4>
+          <p class="finding-description">Circuit &quot;freeze&quot; modifies &quot;frozenAccounts&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "freeze"
+              <pre class="finding-code">frozenAccounts.insert(d_account)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: mintCount</h4>
+          <p class="finding-description">Circuit &quot;mintCustodial&quot; modifies &quot;mintCount&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "mintCustodial"
+              <pre class="finding-code">mintCount.increment(1)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: mintCount</h4>
+          <p class="finding-description">Circuit &quot;mintToHolder&quot; modifies &quot;mintCount&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "mintToHolder"
+              <pre class="finding-code">mintCount.increment(1)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: policyUpdateCount</h4>
+          <p class="finding-description">Circuit &quot;updatePolicy&quot; modifies &quot;policyUpdateCount&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "updatePolicy"
+              <pre class="finding-code">policyUpdateCount.increment(1)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: transferCount</h4>
+          <p class="finding-description">Circuit &quot;custodialTransfer&quot; modifies &quot;transferCount&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "custodialTransfer"
+              <pre class="finding-code">transferCount.increment(1)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: transferCount</h4>
+          <p class="finding-description">Circuit &quot;shieldedTransfer&quot; modifies &quot;transferCount&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "shieldedTransfer"
+              <pre class="finding-code">transferCount.increment(1)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">[Heuristic] Unchecked state mutation: transferCount</h4>
+          <p class="finding-description">Circuit &quot;shieldedTransferToContract&quot; modifies &quot;transferCount&quot; without apparent precondition checks.
+
+Note: pattern-match heuristic, not semantic analysis. May be a false positive.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "shieldedTransferToContract"
+              <pre class="finding-code">transferCount.increment(1)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, &quot;Invalid state&quot;);
+          </div>
+        </div>
+      
+        </div>
+      
+    </section>
+    
+    
+    <section class="nonce-hygiene">
+      <h2>🎲 Nonce Hygiene</h2>
+      <p class="nonce-witness-status">Witness file: <code>/Users/robertblessing-hartley/code/compliant-token/witnesses/compliant-token-witnesses.ts</code></p>
+      <p class="no-findings">✅ No nonce hygiene issues detected by this analyzer.</p>
+    </section>
+    
+    
+    <section>
+      <h2>🔗 Circuit Details</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Circuit</th>
+            <th>Constraints</th>
+            <th>K-Value</th>
+            <th>Proof Size</th>
+            <th>Proving Time</th>
+            <th>Memory</th>
+            <th>Complexity</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+        <tr>
+          <td><strong>addAdmin</strong></td>
+          <td>37,572</td>
+          <td>17</td>
+          <td>1.0 KB</td>
+          <td>2.9s</td>
+          <td>505 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>addToAllowlist</strong></td>
+          <td>61,140</td>
+          <td>17</td>
+          <td>1.0 KB</td>
+          <td>4.7s</td>
+          <td>508 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>burnCustodial</strong></td>
+          <td>210,780</td>
+          <td>19</td>
+          <td>1.1 KB</td>
+          <td>15.9s</td>
+          <td>526 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>custodialTransfer</strong></td>
+          <td>285,780</td>
+          <td>20</td>
+          <td>1.1 KB</td>
+          <td>21.5s</td>
+          <td>535 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>executeWithdraw</strong></td>
+          <td>137,856</td>
+          <td>19</td>
+          <td>1.1 KB</td>
+          <td>10.4s</td>
+          <td>517 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>forceTransfer</strong></td>
+          <td>187,704</td>
+          <td>19</td>
+          <td>1.1 KB</td>
+          <td>14.2s</td>
+          <td>523 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>freeze</strong></td>
+          <td>89,088</td>
+          <td>18</td>
+          <td>1.0 KB</td>
+          <td>6.8s</td>
+          <td>511 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>initializeToken</strong></td>
+          <td>97,656</td>
+          <td>18</td>
+          <td>1.0 KB</td>
+          <td>7.4s</td>
+          <td>512 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>mergeTwoCoins</strong></td>
+          <td>110,556</td>
+          <td>18</td>
+          <td>1.0 KB</td>
+          <td>8.4s</td>
+          <td>514 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>mergeWithImmediate</strong></td>
+          <td>109,896</td>
+          <td>18</td>
+          <td>1.0 KB</td>
+          <td>8.3s</td>
+          <td>514 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>mintCustodial</strong></td>
+          <td>399,984</td>
+          <td>20</td>
+          <td>1.1 KB</td>
+          <td>30.1s</td>
+          <td>549 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>mintToHolder</strong></td>
+          <td>308,124</td>
+          <td>20</td>
+          <td>1.1 KB</td>
+          <td>23.2s</td>
+          <td>538 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>pause</strong></td>
+          <td>59,244</td>
+          <td>17</td>
+          <td>1.0 KB</td>
+          <td>4.5s</td>
+          <td>508 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>prepareWithdraw</strong></td>
+          <td>357,960</td>
+          <td>20</td>
+          <td>1.1 KB</td>
+          <td>26.9s</td>
+          <td>544 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>removeAdmin</strong></td>
+          <td>35,424</td>
+          <td>17</td>
+          <td>1.0 KB</td>
+          <td>2.8s</td>
+          <td>505 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>removeFromAllowlist</strong></td>
+          <td>58,992</td>
+          <td>17</td>
+          <td>1.0 KB</td>
+          <td>4.5s</td>
+          <td>508 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>shieldedTransfer</strong></td>
+          <td>196,608</td>
+          <td>19</td>
+          <td>1.1 KB</td>
+          <td>14.8s</td>
+          <td>524 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>shieldedTransferToContract</strong></td>
+          <td>223,872</td>
+          <td>19</td>
+          <td>1.1 KB</td>
+          <td>16.9s</td>
+          <td>528 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>unfreeze</strong></td>
+          <td>87,924</td>
+          <td>18</td>
+          <td>1.0 KB</td>
+          <td>6.7s</td>
+          <td>511 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>unpause</strong></td>
+          <td>36,168</td>
+          <td>17</td>
+          <td>1.0 KB</td>
+          <td>2.8s</td>
+          <td>505 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>updatePolicy</strong></td>
+          <td>94,044</td>
+          <td>18</td>
+          <td>1.0 KB</td>
+          <td>7.2s</td>
+          <td>512 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        </tbody>
+      </table>
+    </section>
+    
+    
+    <section>
+      <h2>⚡ Performance Insights</h2>
+      <div class="insights">
+        <div class="insight-item">11 circuit(s) with very high constraint count (&gt;100K): burnCustodial, custodialTransfer, executeWithdraw, forceTransfer, mergeTwoCoins, mergeWithImmediate, mintCustodial, mintToHolder, prepareWithdraw, shieldedTransfer, shieldedTransferToContract</div><div class="insight-item">1 circuit(s) with slow proving time (&gt;30s): mintCustodial (30.1s)</div>
+      </div>
+    </section>
+    
+    
+    <section>
+      <h2>💡 Recommendations</h2>
+      <div class="recommendations">
+        <div class="recommendation-item">Consider breaking down high-complexity circuits (addToAllowlist, burnCustodial, custodialTransfer, executeWithdraw, forceTransfer, freeze, initializeToken, mergeTwoCoins, mergeWithImmediate, mintCustodial, mintToHolder, pause, prepareWithdraw, removeFromAllowlist, shieldedTransfer, shieldedTransferToContract, unfreeze, updatePolicy) into smaller sub-circuits for better performance and maintainability</div><div class="recommendation-item">With 21 circuits, consider parallelizing proof generation to reduce overall proving time</div><div class="recommendation-item">Ensure thorough testing of high-complexity circuits (burnCustodial, custodialTransfer, executeWithdraw, forceTransfer, mergeTwoCoins, mergeWithImmediate, mintCustodial, mintToHolder, prepareWithdraw, shieldedTransfer, shieldedTransferToContract) before deployment</div>
+      </div>
+    </section>
+    
+    <section><h2>📈 Visualizations</h2>
+          <div class="visualization">
+            <div class="visualization-title">Circuit Dependency Graph</div>
+            <div class="visualization-description">Shows the dependencies between circuits in the contract. Each node represents a circuit, and edges show which circuits call other circuits. Node colors indicate circuit complexity based on constraint counts. If no edges are shown, circuits are independent of each other (common when using library functions).</div>
+            <img src="visualizations/dependency-graph.svg" alt="Circuit Dependency Graph" loading="lazy" />
+            
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #d4edda;"></span>
+          <span class="legend-label">Low Complexity (&lt;1K constraints)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #fff3cd;"></span>
+          <span class="legend-label">Medium Complexity (1K-10K constraints)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #f8d7da;"></span>
+          <span class="legend-label">High Complexity (10K-100K constraints)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #f5c6cb;"></span>
+          <span class="legend-label">Very High Complexity (&gt;100K constraints)</span>
+        </div>
+      </div>
+    
+          </div>
+        
+          <div class="visualization">
+            <div class="visualization-title">State Flow Diagram</div>
+            <div class="visualization-description">Maps how circuits interact with contract state. Ledger variables (public state, stored on-chain) are shown as cylinders. Witness variables (private inputs, known only to prover) are shown as diamonds. Arrows indicate read operations (data flowing from state to circuit) and write operations (circuit modifying state). This helps identify which circuits access which state and whether that state is public or private.</div>
+            <img src="visualizations/state-flow.svg" alt="State Flow Diagram" loading="lazy" />
+            
+          </div>
+        
+          <div class="visualization">
+            <div class="visualization-title">Performance Heatmap</div>
+            <div class="visualization-description">Identifies performance characteristics of each circuit based on constraint count and estimated proving time. Circuits are color-coded by their performance impact to help prioritize optimization efforts.</div>
+            <img src="visualizations/performance-heatmap.svg" alt="Performance Heatmap" loading="lazy" />
+            
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #d4edda;"></span>
+          <span class="legend-label">Fast (&lt;5s)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #fff3cd;"></span>
+          <span class="legend-label">Moderate (5-30s)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #f8d7da;"></span>
+          <span class="legend-label">Slow (30-120s)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #f5c6cb;"></span>
+          <span class="legend-label">Very Slow (&gt;120s)</span>
+        </div>
+      </div>
+    
+          </div>
+        </section>
+    
+    <footer>
+      <p>Generated by <strong>Compact Circuit Analyzer</strong> v0.1.0</p>
+      <p>Powered by the Minokawa compact compiler</p>
+    </footer>
+    
+  </div>
+  <!--
+    Inline <script> intentionally omitted to keep the CSP at
+    script-src 'none'. The previous block provided two cosmetic
+    behaviours (table-row highlight on click, Ctrl+P print handler)
+    that the browser handles or are non-essential. If future
+    interactivity is needed, prefer adding a <script> with a
+    sha256 hash listed in the CSP, or move to a sandboxed iframe.
+  -->
+</body>
+</html>

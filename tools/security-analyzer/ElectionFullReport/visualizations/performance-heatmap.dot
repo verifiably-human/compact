@@ -1,0 +1,17 @@
+digraph PerformanceHeatmap {
+  rankdir=TB;
+  bgcolor="#FFFFFF";
+  fontcolor="#000000";
+  node [shape=box, style=filled, fontname="Arial", fontsize=10, fontcolor="#000000"];
+  edge [fontname="Arial", fontsize=8, fontcolor="#000000"];
+
+  label="Performance Heatmap\nContract: election.compact\nTotal Proving Time: 35.9s";
+  labelloc="t";
+  fontsize=14;
+
+  "vote$commit" [label="vote$commit\n156,408 constraints\nProving Time: 11.8s\nMemory: 520MB", fillcolor="#FF6347", color="#333333"];
+  "vote$reveal" [label="vote$reveal\n146,832 constraints\nProving Time: 11.1s\nMemory: 518MB", fillcolor="#FF6347", color="#333333"];
+  "add_voter" [label="add_voter\n79,332 constraints\nProving Time: 6.0s\nMemory: 510MB", fillcolor="#FFA500", color="#333333"];
+  "advance" [label="advance\n49,788 constraints\nProving Time: 3.8s\nMemory: 507MB", fillcolor="#FFA500", color="#333333"];
+  "set_topic" [label="set_topic\n39,708 constraints\nProving Time: 3.1s\nMemory: 505MB", fillcolor="#FFA500", color="#333333"];
+}

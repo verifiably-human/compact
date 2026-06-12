@@ -1,0 +1,50 @@
+digraph StateFlow {
+  rankdir=LR;
+  bgcolor="#FFFFFF";
+  fontcolor="#000000";
+  node [fontname="Arial", fontsize=10, fontcolor="#000000"];
+  edge [fontname="Arial", fontsize=8, fontcolor="#000000"];
+
+  label="State Flow Diagram\nContract: election.compact";
+  labelloc="t";
+  fontsize=14;
+
+  // Public State (Ledger Variables - on-chain)
+  "authority" [label="authority\n(Bytes<32>)\n[PUBLIC]", fillcolor="#87CEEB", shape=cylinder, style=filled, color="#333333"];
+  "state" [label="state\n(PublicState)\n[PUBLIC]", fillcolor="#87CEEB", shape=cylinder, style=filled, color="#333333"];
+  "topic" [label="topic\n(Maybe<Opaque<\"string\">>)\n[PUBLIC]", fillcolor="#87CEEB", shape=cylinder, style=filled, color="#333333"];
+  "tally_yes" [label="tally_yes\n(Counter)\n[PUBLIC]", fillcolor="#87CEEB", shape=cylinder, style=filled, color="#333333"];
+  "tally_no" [label="tally_no\n(Counter)\n[PUBLIC]", fillcolor="#87CEEB", shape=cylinder, style=filled, color="#333333"];
+  "committed_votes" [label="committed_votes\n(MerkleTree<10, Bytes<32>>)\n[PUBLIC]", fillcolor="#87CEEB", shape=cylinder, style=filled, color="#333333"];
+  "eligible_voters" [label="eligible_voters\n(MerkleTree<10, Bytes<32>>)\n[PUBLIC]", fillcolor="#87CEEB", shape=cylinder, style=filled, color="#333333"];
+  "committed" [label="committed\n(Set<Bytes<32>>)\n[PUBLIC]", fillcolor="#87CEEB", shape=cylinder, style=filled, color="#333333"];
+  "revealed" [label="revealed\n(Set<Bytes<32>>)\n[PUBLIC]", fillcolor="#87CEEB", shape=cylinder, style=filled, color="#333333"];
+
+  // Private Inputs (Witness Variables - off-chain)
+  "private$secret_key" [label="private$secret_key\n(Bytes<32>)\n[PRIVATE]", fillcolor="#F0E68C", shape=diamond, style=filled, color="#333333"];
+  "private$state" [label="private$state\n(PrivateState)\n[PRIVATE]", fillcolor="#F0E68C", shape=diamond, style=filled, color="#333333"];
+  "private$state$advance" [label="private$state$advance\n([])\n[PRIVATE]", fillcolor="#F0E68C", shape=diamond, style=filled, color="#333333"];
+  "private$vote$record" [label="private$vote$record\n([])\n[PRIVATE]", fillcolor="#F0E68C", shape=diamond, style=filled, color="#333333"];
+  "private$vote" [label="private$vote\n(PermissibleVotes)\n[PRIVATE]", fillcolor="#F0E68C", shape=diamond, style=filled, color="#333333"];
+  "context$eligible_voters$path_of" [label="context$eligible_voters$path_of\n(Maybe<MerkleTreePath<10, Bytes<32>>>)\n[PRIVATE]", fillcolor="#F0E68C", shape=diamond, style=filled, color="#333333"];
+  "context$committed_votes$path_of" [label="context$committed_votes$path_of\n(Maybe<MerkleTreePath<10, Bytes<32>>>)\n[PRIVATE]", fillcolor="#F0E68C", shape=diamond, style=filled, color="#333333"];
+
+  // Circuits
+  "add_voter" [label="add_voter", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "advance" [label="advance", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "set_topic" [label="set_topic", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "vote$commit" [label="vote$commit", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "vote$reveal" [label="vote$reveal", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+
+  // State Interactions
+  "authority" -> "advance" [label="read", color="#32CD32", style=solid];
+  "state" -> "advance" [label="read", color="#32CD32", style=solid];
+  "advance" -> "state" [label="write", color="#FF4500", style=solid];
+  "topic" -> "advance" [label="read", color="#32CD32", style=solid];
+  "authority" -> "set_topic" [label="read", color="#32CD32", style=solid];
+  "state" -> "set_topic" [label="read", color="#32CD32", style=solid];
+  "set_topic" -> "topic" [label="write", color="#FF4500", style=solid];
+  "authority" -> "add_voter" [label="read", color="#32CD32", style=solid];
+  "state" -> "add_voter" [label="read", color="#32CD32", style=solid];
+  "add_voter" -> "eligible_voters" [label="insert", color="#FF4500", style=solid];
+}

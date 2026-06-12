@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> Initialized
+
+    Initialized --> State1: addAdmin()
+    State1 --> State2: burnCustodial()
+    State2 --> State3: freeze()
+    State3 --> State4: unfreeze()
+    State4 --> State5: forceTransfer()
+    State5 --> Finalized: ... (2 more)
+    Finalized --> [*]

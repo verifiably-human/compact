@@ -1,0 +1,43 @@
+digraph StateFlow {
+  rankdir=LR;
+  bgcolor="#FFFFFF";
+  fontcolor="#000000";
+  node [fontname="Arial", fontsize=10, fontcolor="#000000"];
+  edge [fontname="Arial", fontsize=8, fontcolor="#000000"];
+
+  label="State Flow Diagram\nContract: compliant-token-full.compact";
+  labelloc="t";
+  fontsize=14;
+
+
+  // Private Inputs (Witness Variables - off-chain)
+  "local_secret_key" [label="local_secret_key\n(Bytes<32>)\n[PRIVATE]", fillcolor="#F0E68C", shape=diamond, style=filled, color="#333333"];
+  "getAuditNonce" [label="getAuditNonce\n(Bytes<32>)\n[PRIVATE]", fillcolor="#F0E68C", shape=diamond, style=filled, color="#333333"];
+
+  // Circuits
+  "addAdmin" [label="addAdmin", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "addToAllowlist" [label="addToAllowlist", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "burnCustodial" [label="burnCustodial", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "custodialTransfer" [label="custodialTransfer", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "executeWithdraw" [label="executeWithdraw", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "forceTransfer" [label="forceTransfer", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "freeze" [label="freeze", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "initializeToken" [label="initializeToken", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "mergeTwoCoins" [label="mergeTwoCoins", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "mergeWithImmediate" [label="mergeWithImmediate", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "mintCustodial" [label="mintCustodial", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "mintToHolder" [label="mintToHolder", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "pause" [label="pause", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "prepareWithdraw" [label="prepareWithdraw", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "removeAdmin" [label="removeAdmin", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "removeFromAllowlist" [label="removeFromAllowlist", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "shieldedTransfer" [label="shieldedTransfer", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "shieldedTransferToContract" [label="shieldedTransferToContract", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "unfreeze" [label="unfreeze", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "unpause" [label="unpause", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+  "updatePolicy" [label="updatePolicy", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+
+  // State Interactions
+  info [shape=note, fillcolor="#FFFFFF", color="#333333", fontcolor="#000000",
+        label="No state interactions detected in circuit bodies.\nMay use external library functions."];
+}

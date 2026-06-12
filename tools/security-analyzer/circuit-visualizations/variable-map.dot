@@ -1,0 +1,12 @@
+digraph VariableMap {
+  rankdir=TB;
+  bgcolor="#FFFFFF";
+  node [shape=ellipse, style=filled, fontname="Arial", fontsize=10];
+  edge [fontname="Arial", fontsize=8];
+
+  label="Variable Relationship Map\nContract: counter.compact";
+  labelloc="t";
+  fontsize=14;
+
+  "increment" [label="increment", fillcolor="#DDA0DD", color="#333333"];
+}

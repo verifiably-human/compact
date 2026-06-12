@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Circuit Analysis Report - /Users/robertblessing-hartley/code/midnight-code/compact-export/examples/election.compact</title>
+  <style>
+    
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        color: #333333;
+        background: #ffffff;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        padding: 40px 0;
+        border-bottom: 3px solid #4169E1;
+        margin-bottom: 40px;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        color: #4169E1;
+      }
+
+      h2 {
+        font-size: 1.8rem;
+        margin: 40px 0 20px;
+        color: #4169E1;
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 10px;
+      }
+
+      h3 {
+        font-size: 1.3rem;
+        margin: 30px 0 15px;
+        color: #333333;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+        color: #666666;
+      }
+
+      .metadata {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+      }
+
+      .metadata-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .metadata-label {
+        font-size: 0.85rem;
+        color: #999999;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .metadata-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-top: 5px;
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+      }
+
+      .card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 25px;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+
+      .card-title {
+        font-size: 0.9rem;
+        color: #999999;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+      }
+
+      .card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #4169E1;
+      }
+
+      .card-subtitle {
+        font-size: 0.9rem;
+        color: #666666;
+        margin-top: 5px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background: #f8f9fa;
+      }
+
+      thead {
+        background: #e9ecef;
+      }
+
+      th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+      }
+
+      tr:hover {
+        background: #f5f5f5;
+      }
+
+      .complexity-low { color: #28a745; font-weight: 600; }
+      .complexity-medium { color: #ffc107; font-weight: 600; }
+      .complexity-high { color: #fd7e14; font-weight: 600; }
+      .complexity-very-high { color: #dc3545; font-weight: 600; }
+
+      .insights {
+        background: #f8f9fa;
+        border-left: 4px solid #4169E1;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+
+      .insight-item {
+        margin: 15px 0;
+        padding-left: 25px;
+        position: relative;
+      }
+
+      .insight-item::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: #4169E1;
+        font-weight: bold;
+      }
+
+      .recommendations {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+
+      .recommendation-item {
+        margin: 15px 0;
+        padding-left: 25px;
+        position: relative;
+      }
+
+      .recommendation-item::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #28a745;
+        font-weight: bold;
+      }
+
+      .visualization {
+        margin: 40px 0;
+        text-align: center;
+      }
+
+      .visualization img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+
+      .visualization-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333333;
+      }
+
+      .visualization-description {
+        font-size: 0.95rem;
+        color: #666666;
+        margin-bottom: 20px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 15px;
+        padding: 15px;
+        background: rgba(0,0,0,0.03);
+        border-radius: 8px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid rgba(0,0,0,0.2);
+      }
+
+      .legend-label {
+        font-size: 0.9rem;
+        color: #333333;
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 60px;
+        padding-top: 30px;
+        border-top: 2px solid #dee2e6;
+        color: #999999;
+        font-size: 0.9rem;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .badge-success { background: #28a745; color: white; }
+      .badge-warning { background: #ffc107; color: #333; }
+      .badge-danger { background: #dc3545; color: white; }
+
+      /* Security Analysis Styles */
+      .security-summary {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 25px;
+        margin: 30px 0;
+      }
+
+      .risk-score {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 15px 0;
+      }
+
+      .risk-score.low {
+        background: #d4edda;
+        color: #28a745;
+        border: 2px solid #28a745;
+      }
+
+      .risk-score.medium {
+        background: #fff3cd;
+        color: #ffc107;
+        border: 2px solid #ffc107;
+      }
+
+      .risk-score.high {
+        background: #ffe5d0;
+        color: #fd7e14;
+        border: 2px solid #fd7e14;
+      }
+
+      .risk-score.critical {
+        background: #f8d7da;
+        color: #dc3545;
+        border: 2px solid #dc3545;
+      }
+
+      .findings-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .finding-count {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+        border-radius: 6px;
+        background: #e9ecef;
+        font-weight: 600;
+      }
+
+      .finding-count .count {
+        font-size: 1.2rem;
+      }
+
+      .finding-count.critical { border-left: 4px solid #dc3545; }
+      .finding-count.high { border-left: 4px solid #fd7e14; }
+      .finding-count.medium { border-left: 4px solid #ffc107; }
+      .finding-count.low { border-left: 4px solid #17a2b8; }
+      .finding-count.info { border-left: 4px solid #6c757d; }
+
+      .security-finding {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #dee2e6;
+      }
+
+      .security-finding.critical { border-left-color: #dc3545; }
+      .security-finding.high { border-left-color: #fd7e14; }
+      .security-finding.medium { border-left-color: #ffc107; }
+      .security-finding.low { border-left-color: #17a2b8; }
+      .security-finding.info { border-left-color: #6c757d; }
+
+      .finding-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .finding-severity {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .finding-severity.critical {
+        background: #dc3545;
+        color: white;
+      }
+
+      .finding-severity.high {
+        background: #fd7e14;
+        color: white;
+      }
+
+      .finding-severity.medium {
+        background: #ffc107;
+        color: #333;
+      }
+
+      .finding-severity.low {
+        background: #17a2b8;
+        color: white;
+      }
+
+      .finding-severity.info {
+        background: #6c757d;
+        color: white;
+      }
+
+      .finding-code {
+        background: #f5f5f5;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 12px;
+        margin: 10px 0;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .no-findings {
+        background: #d4edda;
+        border: 1px solid #28a745;
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+        color: #28a745;
+        font-size: 1.1rem;
+        margin: 20px 0;
+      }
+
+      @media print {
+        body { background: white; color: black; }
+        .card { page-break-inside: avoid; }
+        .visualization { page-break-inside: avoid; }
+      }
+
+      @media (max-width: 768px) {
+        .metadata { flex-direction: column; gap: 15px; }
+        .summary-grid { grid-template-columns: 1fr; }
+        h1 { font-size: 2rem; }
+        h2 { font-size: 1.5rem; }
+      }
+    
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <header>
+      <h1>🎨 Circuit Analysis Report</h1>
+      <p class="subtitle">/Users/robertblessing-hartley/code/midnight-code/compact-export/examples/election.compact</p>
+      <div class="metadata">
+        <div class="metadata-item">
+          <span class="metadata-label">Generated</span>
+          <span class="metadata-value">2/3/2026, 3:41:45 PM</span>
+        </div>
+        <div class="metadata-item">
+          <span class="metadata-label">Compiler Version</span>
+          <span class="metadata-value">0.4.0</span>
+        </div>
+        <div class="metadata-item">
+          <span class="metadata-label">Compilation Time</span>
+          <span class="metadata-value">0.22s</span>
+        </div>
+      </div>
+    </header>
+    
+    
+    <section>
+      <h2>📊 Summary</h2>
+      <div class="summary-grid">
+        <div class="card">
+          <div class="card-title">Total Circuits</div>
+          <div class="card-value">5</div>
+          <div class="card-subtitle">Exported circuits</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Total Constraints</div>
+          <div class="card-value">472,068</div>
+          <div class="card-subtitle">Across all circuits</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Total Proving Time</div>
+          <div class="card-value">35.9s</div>
+          <div class="card-subtitle">Estimated (CPU-dependent)</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Average K-Value</div>
+          <div class="card-value">18.0</div>
+          <div class="card-subtitle">Plonk domain size</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Peak Memory</div>
+          <div class="card-value">520 MB</div>
+          <div class="card-subtitle">Maximum memory required</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Total Memory</div>
+          <div class="card-value">2560 MB</div>
+          <div class="card-subtitle">If running all circuits</div>
+        </div>
+      </div>
+    </section>
+    
+    
+    <section>
+      <h2>🔒 Security Analysis</h2>
+      <div class="security-summary">
+        <div class="risk-score" style="border-color: #f44336">
+          <div class="risk-label">Overall Risk Score</div>
+          <div class="risk-value" style="color: #f44336">55/100</div>
+          <div class="risk-level">HIGH</div>
+        </div>
+        <div class="findings-summary">
+          <div class="finding-count critical">
+            <span class="count">0</span>
+            <span class="label">Critical</span>
+          </div>
+          <div class="finding-count high">
+            <span class="count">4</span>
+            <span class="label">High</span>
+          </div>
+          <div class="finding-count medium">
+            <span class="count">3</span>
+            <span class="label">Medium</span>
+          </div>
+          <div class="finding-count low">
+            <span class="count">0</span>
+            <span class="label">Low</span>
+          </div>
+          <div class="finding-count info">
+            <span class="count">0</span>
+            <span class="label">Info</span>
+          </div>
+        </div>
+      </div>
+
+      
+        <h3>Security Findings</h3>
+        <div class="security-findings">
+          
+        <div class="security-finding severity-high">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #f44336">🟠 HIGH</span>
+            <span class="finding-type">access-control</span>
+          </div>
+          <h4 class="finding-title">Missing authorization check: advance</h4>
+          <p class="finding-description">Exported circuit "advance" mutates state but has no authorization check. Anyone can call this circuit.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "advance"
+              
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> Unauthorized users can modify contract state, leading to potential exploits.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add authorization check using pattern like: assert(public_key(private$secret_key()) == authority.read(), "Unauthorized");
+          </div>
+        </div>
+      
+        <div class="security-finding severity-high">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #f44336">🟠 HIGH</span>
+            <span class="finding-type">access-control</span>
+          </div>
+          <h4 class="finding-title">Missing authorization check: set_topic</h4>
+          <p class="finding-description">Exported circuit "set_topic" mutates state but has no authorization check. Anyone can call this circuit.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "set_topic"
+              
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> Unauthorized users can modify contract state, leading to potential exploits.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add authorization check using pattern like: assert(public_key(private$secret_key()) == authority.read(), "Unauthorized");
+          </div>
+        </div>
+      
+        <div class="security-finding severity-high">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #f44336">🟠 HIGH</span>
+            <span class="finding-type">access-control</span>
+          </div>
+          <h4 class="finding-title">Missing authorization check: add_voter</h4>
+          <p class="finding-description">Exported circuit "add_voter" mutates state but has no authorization check. Anyone can call this circuit.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "add_voter"
+              
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> Unauthorized users can modify contract state, leading to potential exploits.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add authorization check using pattern like: assert(public_key(private$secret_key()) == authority.read(), "Unauthorized");
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">Unchecked state mutation: state</h4>
+          <p class="finding-description">Circuit "advance" modifies "state" without apparent precondition checks.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "advance"
+              <pre class="finding-code">state.write(successor(state.read()</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, "Invalid state");
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">Unchecked state mutation: topic</h4>
+          <p class="finding-description">Circuit "set_topic" modifies "topic" without apparent precondition checks.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "set_topic"
+              <pre class="finding-code">topic.write(Maybe&lt;Opaque&lt;&quot;string&quot;&gt;&gt;{ is_some: true, value: disclose(t)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, "Invalid state");
+          </div>
+        </div>
+      
+        <div class="security-finding severity-medium">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #ff9800">🟡 MEDIUM</span>
+            <span class="finding-type">state-mutation</span>
+          </div>
+          <h4 class="finding-title">Unchecked state mutation: eligible_voters</h4>
+          <p class="finding-description">Circuit "add_voter" modifies "eligible_voters" without apparent precondition checks.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "add_voter"
+              <pre class="finding-code">eligible_voters.insert(disclose(pk)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> State could be corrupted if preconditions are not met.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add assertion to verify state preconditions before mutation. Example: assert(state.read() == ExpectedState, "Invalid state");
+          </div>
+        </div>
+      
+        <div class="security-finding severity-high">
+          <div class="finding-header">
+            <span class="finding-severity" style="background-color: #f44336">🟠 HIGH</span>
+            <span class="finding-type">taint</span>
+          </div>
+          <h4 class="finding-title">Unvalidated user input in state mutation: t</h4>
+          <p class="finding-description">Circuit "set_topic" uses user-controlled input "t" in state mutation without validation.</p>
+          
+            <div class="finding-location">
+              <strong>Location:</strong> Circuit "set_topic"
+              <pre class="finding-code">topic.write(Maybe&lt;Opaque&lt;&quot;string&quot;&gt;&gt;{ is_some: true, value: disclose(t)</pre>
+            </div>
+          
+          <div class="finding-impact">
+            <strong>Impact:</strong> User could manipulate state with malicious inputs, potentially corrupting contract state.
+          </div>
+          <div class="finding-recommendation">
+            <strong>Recommendation:</strong> Add validation assertion before using user input: assert(t < MAX_VALUE, "Invalid input");
+          </div>
+        </div>
+      
+        </div>
+      
+    </section>
+    
+    
+    <section>
+      <h2>🔗 Circuit Details</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Circuit</th>
+            <th>Constraints</th>
+            <th>K-Value</th>
+            <th>Proof Size</th>
+            <th>Proving Time</th>
+            <th>Memory</th>
+            <th>Complexity</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+        <tr>
+          <td><strong>add_voter</strong></td>
+          <td>79,332</td>
+          <td>18</td>
+          <td>1.0 KB</td>
+          <td>6.0s</td>
+          <td>510 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>advance</strong></td>
+          <td>49,788</td>
+          <td>17</td>
+          <td>1.0 KB</td>
+          <td>3.8s</td>
+          <td>507 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>set_topic</strong></td>
+          <td>39,708</td>
+          <td>17</td>
+          <td>1.0 KB</td>
+          <td>3.1s</td>
+          <td>505 MB</td>
+          <td><span class="complexity-high">High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>vote$commit</strong></td>
+          <td>156,408</td>
+          <td>19</td>
+          <td>1.1 KB</td>
+          <td>11.8s</td>
+          <td>520 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        <tr>
+          <td><strong>vote$reveal</strong></td>
+          <td>146,832</td>
+          <td>19</td>
+          <td>1.1 KB</td>
+          <td>11.1s</td>
+          <td>518 MB</td>
+          <td><span class="complexity-very-high">Very High</span></td>
+        </tr>
+      
+        </tbody>
+      </table>
+    </section>
+    
+    
+    <section>
+      <h2>⚡ Performance Insights</h2>
+      <div class="insights">
+        <div class="insight-item">2 circuit(s) with very high constraint count (>100K): vote$commit, vote$reveal</div>
+      </div>
+    </section>
+    
+    
+    <section>
+      <h2>💡 Recommendations</h2>
+      <div class="recommendations">
+        <div class="recommendation-item">Consider breaking down high-complexity circuits (add_voter, vote$commit, vote$reveal) into smaller sub-circuits for better performance and maintainability</div><div class="recommendation-item">With 5 circuits, consider parallelizing proof generation to reduce overall proving time</div><div class="recommendation-item">Ensure thorough testing of high-complexity circuits (vote$commit, vote$reveal) before deployment</div>
+      </div>
+    </section>
+    
+    <section><h2>📈 Visualizations</h2>
+          <div class="visualization">
+            <div class="visualization-title">Circuit Dependency Graph</div>
+            <div class="visualization-description">Shows the dependencies between circuits in the contract. Each node represents a circuit, and edges show which circuits call other circuits. Node colors indicate circuit complexity based on constraint counts. If no edges are shown, circuits are independent of each other (common when using library functions).</div>
+            <img src="visualizations/dependency-graph.svg" alt="Circuit Dependency Graph" loading="lazy" />
+            
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #d4edda;"></span>
+          <span class="legend-label">Low Complexity (&lt;1K constraints)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #fff3cd;"></span>
+          <span class="legend-label">Medium Complexity (1K-10K constraints)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #f8d7da;"></span>
+          <span class="legend-label">High Complexity (10K-100K constraints)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #f5c6cb;"></span>
+          <span class="legend-label">Very High Complexity (&gt;100K constraints)</span>
+        </div>
+      </div>
+    
+          </div>
+        
+          <div class="visualization">
+            <div class="visualization-title">State Flow Diagram</div>
+            <div class="visualization-description">Maps how circuits interact with contract state. Ledger variables (public state, stored on-chain) are shown as cylinders. Witness variables (private inputs, known only to prover) are shown as diamonds. Arrows indicate read operations (data flowing from state to circuit) and write operations (circuit modifying state). This helps identify which circuits access which state and whether that state is public or private.</div>
+            <img src="visualizations/state-flow.svg" alt="State Flow Diagram" loading="lazy" />
+            
+          </div>
+        
+          <div class="visualization">
+            <div class="visualization-title">Performance Heatmap</div>
+            <div class="visualization-description">Identifies performance characteristics of each circuit based on constraint count and estimated proving time. Circuits are color-coded by their performance impact to help prioritize optimization efforts.</div>
+            <img src="visualizations/performance-heatmap.svg" alt="Performance Heatmap" loading="lazy" />
+            
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #d4edda;"></span>
+          <span class="legend-label">Fast (&lt;5s)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #fff3cd;"></span>
+          <span class="legend-label">Moderate (5-30s)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #f8d7da;"></span>
+          <span class="legend-label">Slow (30-120s)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #f5c6cb;"></span>
+          <span class="legend-label">Very Slow (&gt;120s)</span>
+        </div>
+      </div>
+    
+          </div>
+        </section>
+    
+    <footer>
+      <p>Generated by <strong>Compact Circuit Analyzer</strong> v0.1.0</p>
+      <p>Powered by the Minokawa compact compiler</p>
+    </footer>
+    
+  </div>
+  <script>
+    
+      // Add interactive features
+      document.querySelectorAll('table tbody tr').forEach(row => {
+        row.addEventListener('click', function() {
+          this.style.backgroundColor = this.style.backgroundColor ? '' : 'rgba(65, 105, 225, 0.1)';
+        });
+      });
+
+      // Print functionality
+      window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'p') {
+          e.preventDefault();
+          window.print();
+        }
+      });
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+{
+  "schema_version": "1.0.0",
+  "contract_file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+  "analyzer_version": "1.0.0",
+  "generated_at": "2026-06-12T13:04:57.344Z",
+  "policy_assessment": {
+    "schemaVersion": "1.0.0",
+    "deployRecommendation": "warn",
+    "reasons": [
+      {
+        "rule": "high-severity-security-findings",
+        "severity": "warn",
+        "message": "3 high-severity security finding(s): [Heuristic] Unvalidated user input in state mutation: adminPk; [Heuristic] Unvalidated user input in state mutation: account; [Heuristic] Unvalidated user input in state mutation: account"
+      }
+    ]
+  },
+  "profile": {
+    "schemaVersion": "1.0.0",
+    "valuePosture": "bridges",
+    "privacyPosture": "selective",
+    "authorityModel": "single-owner",
+    "tokenPrimitives": [
+      {
+        "primitive": "mintShieldedToken",
+        "circuit": "mintCustodial",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 272,
+          "column": 45
+        }
+      },
+      {
+        "primitive": "receiveShielded",
+        "circuit": "mintCustodial",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 278,
+          "column": 14
+        }
+      },
+      {
+        "primitive": "mintShieldedToken",
+        "circuit": "mintToHolder",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 311,
+          "column": 36
+        }
+      },
+      {
+        "primitive": "mintUnshieldedToken",
+        "circuit": "prepareWithdraw",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 493,
+          "column": 66
+        }
+      },
+      {
+        "primitive": "sendUnshielded",
+        "circuit": "executeWithdraw",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 509,
+          "column": 25
+        }
+      },
+      {
+        "primitive": "sendShielded",
+        "circuit": "shieldedTransfer",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 593,
+          "column": 60
+        }
+      },
+      {
+        "primitive": "sendShielded",
+        "circuit": "shieldedTransferToContract",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 622,
+          "column": 57
+        }
+      }
+    ],
+    "ledgerSurface": {
+      "fieldsTotal": 24,
+      "fieldsSealed": 1,
+      "balanceLike": [
+        "totalSupply",
+        "balances",
+        "vaultBalance"
+      ],
+      "commitmentLike": [
+        "lastOpCommitment"
+      ],
+      "nullifierLike": [],
+      "counterLike": [
+        "mintCount",
+        "burnCount",
+        "transferCount",
+        "freezeActionCount",
+        "forceTransferCount",
+        "policyUpdateCount"
+      ],
+      "keyLike": [
+        "owner",
+        "admins"
+      ]
+    },
+    "externalCustodyHints": [
+      "vaultBalance"
+    ],
+    "circuitCount": 33,
+    "exportedCircuitCount": 21,
+    "witnessFunctionCount": 2
+  },
+  "value_inventory": {
+    "schemaVersion": "1.0.0",
+    "mintOperations": [
+      {
+        "primitive": "mintShieldedToken",
+        "circuit": "mintCustodial",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 272,
+          "column": 45
+        },
+        "authorizedBy": "unclear"
+      },
+      {
+        "primitive": "mintShieldedToken",
+        "circuit": "mintToHolder",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 311,
+          "column": 36
+        },
+        "authorizedBy": "unclear"
+      },
+      {
+        "primitive": "mintUnshieldedToken",
+        "circuit": "prepareWithdraw",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 493,
+          "column": 66
+        },
+        "authorizedBy": "unclear"
+      }
+    ],
+    "sendOperations": [
+      {
+        "primitive": "sendUnshielded",
+        "circuit": "executeWithdraw",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 509,
+          "column": 25
+        }
+      },
+      {
+        "primitive": "sendShielded",
+        "circuit": "shieldedTransfer",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 593,
+          "column": 60
+        }
+      },
+      {
+        "primitive": "sendShielded",
+        "circuit": "shieldedTransferToContract",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 622,
+          "column": 57
+        }
+      }
+    ],
+    "receiveOperations": [
+      {
+        "primitive": "receiveShielded",
+        "circuit": "mintCustodial",
+        "location": {
+          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "line": 278,
+          "column": 14
+        }
+      }
+    ],
+    "balanceFields": [
+      {
+        "field": "totalSupply",
+        "type": "Uint<128>",
+        "trackedByCircuits": [
+          "mintCustodial",
+          "mintToHolder",
+          "burnCustodial",
+          "prepareWithdraw"
+        ],
+        "overflowAssertionPresent": false
+      },
+      {
+        "field": "balances",
+        "type": "Map<Bytes<32>, Uint<128>>",
+        "trackedByCircuits": [
+          "getBalance",
+          "creditAccount",
+          "debitAccount"
+        ],
+        "overflowAssertionPresent": false
+      },
+      {
+        "field": "vaultBalance",
+        "type": "Uint<128>",
+        "trackedByCircuits": [
+          "mintCustodial",
+          "burnCustodial",
+          "prepareWithdraw"
+        ],
+        "overflowAssertionPresent": false
+      }
+    ],
+    "commitmentNullifierPairs": [],
+    "maintenanceAuthorityRefs": [],
+    "maxSupplyConstraints": [],
+    "offChainCustodySignals": [
+      "vaultBalance"
+    ],
+    "valueAtRiskSummary": {
+      "estimatedClass": "custodial-token",
+      "isUnboundedMint": false,
+      "isValueHolding": true
+    }
+  },
+  "nonce_analysis": {
+    "schemaVersion": "1.0.0",
+    "witnessFile": "/Users/robertblessing-hartley/code/compliant-token/witnesses/compliant-token-witnesses.ts",
+    "witnessFileSkipped": false,
+    "findings": []
+  }
+}

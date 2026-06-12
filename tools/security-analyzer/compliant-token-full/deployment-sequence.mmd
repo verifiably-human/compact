@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant Developer
+    participant Compiler
+    participant Node
+    participant Ledger
+
+    Developer->>+Compiler: Compile contract
+    Compiler->>Compiler: Generate ZKIR circuits
+    Compiler->>Compiler: Generate proving/verifying keys
+    Compiler-->>-Developer: Contract artifacts
+
+    Developer->>+Node: Deploy contract
+    Node->>Ledger: Initialize contract state
+    Ledger-->>Node: State initialized
+    Node-->>-Developer: Contract deployed
+
+    Note over Developer,Ledger: Contract ready for transactions

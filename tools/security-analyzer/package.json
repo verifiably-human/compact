@@ -1,0 +1,47 @@
+{
+  "name": "compact-security-analyzer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Constraint and security analysis for Midnight Compact smart contracts. Consumes compiler/security-analysis.json (COIP v1.0.0).",
+  "type": "module",
+  "bin": {
+    "compact-analyzer": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/cli.js",
+    "dev": "tsc --watch",
+    "test": "npm run build && node --test 'dist/*.test.js'",
+    "test:only": "node --test 'dist/*.test.js'",
+    "check:examples": "tsx scripts/check-examples.ts"
+  },
+  "keywords": [
+    "midnight",
+    "compact",
+    "blockchain",
+    "zero-knowledge",
+    "constraint-analysis",
+    "zkp"
+  ],
+  "author": "Midnight Network",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "ora": "^8.0.1",
+    "table": "^6.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "tsx": "^4.22.4",
+    "typescript": "^5.3.3"
+  },
+  "repository": {
+    "type": "git",
+    "directory": "tools/security-analyzer"
+  }
+}

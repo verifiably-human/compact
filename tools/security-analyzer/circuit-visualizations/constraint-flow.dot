@@ -1,0 +1,12 @@
+digraph ConstraintFlow {
+  rankdir=LR;
+  bgcolor="#FFFFFF";
+  node [shape=box, style=rounded, fontname="Arial", fontsize=10];
+  edge [fontname="Arial", fontsize=8];
+
+  label="Constraint Flow Diagram\nContract: counter.compact";
+  labelloc="t";
+  fontsize=14;
+
+  "circuit_0" [label="increment\n9,408 constraints", fillcolor="#FFD700", color="#333333"];
+}

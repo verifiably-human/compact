@@ -1,0 +1,37 @@
+digraph CircuitDependencies {
+  rankdir=TB;
+  bgcolor="#FFFFFF";
+  fontcolor="#000000";
+  node [shape=box, style=filled, fontname="Arial", fontsize=10, fontcolor="#000000"];
+  edge [fontname="Arial", fontsize=8, fontcolor="#000000"];
+
+  label="Circuit Dependency Graph\nContract: compliant-token-full.compact\nCircuits: 21 | Total Constraints: 3,186,372";
+  labelloc="t";
+  fontsize=14;
+
+  "addAdmin" [label="addAdmin\n37,572 constraints\nK=17", fillcolor="#FFA500", color="#333333"];
+  "addToAllowlist" [label="addToAllowlist\n61,140 constraints\nK=17", fillcolor="#FFA500", color="#333333"];
+  "burnCustodial" [label="burnCustodial\n210,780 constraints\nK=19", fillcolor="#FF6347", color="#333333"];
+  "custodialTransfer" [label="custodialTransfer\n285,780 constraints\nK=20", fillcolor="#FF6347", color="#333333"];
+  "executeWithdraw" [label="executeWithdraw\n137,856 constraints\nK=19", fillcolor="#FF6347", color="#333333"];
+  "forceTransfer" [label="forceTransfer\n187,704 constraints\nK=19", fillcolor="#FF6347", color="#333333"];
+  "freeze" [label="freeze\n89,088 constraints\nK=18", fillcolor="#FFA500", color="#333333"];
+  "initializeToken" [label="initializeToken\n97,656 constraints\nK=18", fillcolor="#FFA500", color="#333333"];
+  "mergeTwoCoins" [label="mergeTwoCoins\n110,556 constraints\nK=18", fillcolor="#FF6347", color="#333333"];
+  "mergeWithImmediate" [label="mergeWithImmediate\n109,896 constraints\nK=18", fillcolor="#FF6347", color="#333333"];
+  "mintCustodial" [label="mintCustodial\n399,984 constraints\nK=20", fillcolor="#FF6347", color="#333333"];
+  "mintToHolder" [label="mintToHolder\n308,124 constraints\nK=20", fillcolor="#FF6347", color="#333333"];
+  "pause" [label="pause\n59,244 constraints\nK=17", fillcolor="#FFA500", color="#333333"];
+  "prepareWithdraw" [label="prepareWithdraw\n357,960 constraints\nK=20", fillcolor="#FF6347", color="#333333"];
+  "removeAdmin" [label="removeAdmin\n35,424 constraints\nK=17", fillcolor="#FFA500", color="#333333"];
+  "removeFromAllowlist" [label="removeFromAllowlist\n58,992 constraints\nK=17", fillcolor="#FFA500", color="#333333"];
+  "shieldedTransfer" [label="shieldedTransfer\n196,608 constraints\nK=19", fillcolor="#FF6347", color="#333333"];
+  "shieldedTransferToContract" [label="shieldedTransferToContract\n223,872 constraints\nK=19", fillcolor="#FF6347", color="#333333"];
+  "unfreeze" [label="unfreeze\n87,924 constraints\nK=18", fillcolor="#FFA500", color="#333333"];
+  "unpause" [label="unpause\n36,168 constraints\nK=17", fillcolor="#FFA500", color="#333333"];
+  "updatePolicy" [label="updatePolicy\n94,044 constraints\nK=18", fillcolor="#FFA500", color="#333333"];
+
+
+  note [shape=note, fillcolor="#FFFFFF", color="#333333", fontcolor="#000000",
+        label="No inter-circuit dependencies detected.\nCircuits are independent or call external library functions."];
+}

@@ -1,0 +1,21 @@
+digraph CircuitDependencies {
+  rankdir=TB;
+  bgcolor="#FFFFFF";
+  fontcolor="#000000";
+  node [shape=box, style=filled, fontname="Arial", fontsize=10, fontcolor="#000000"];
+  edge [fontname="Arial", fontsize=8, fontcolor="#000000"];
+
+  label="Circuit Dependency Graph\nContract: election.compact\nCircuits: 5 | Total Constraints: 472,068";
+  labelloc="t";
+  fontsize=14;
+
+  "add_voter" [label="add_voter\n79,332 constraints\nK=18", fillcolor="#FFA500", color="#333333"];
+  "advance" [label="advance\n49,788 constraints\nK=17", fillcolor="#FFA500", color="#333333"];
+  "set_topic" [label="set_topic\n39,708 constraints\nK=17", fillcolor="#FFA500", color="#333333"];
+  "vote$commit" [label="vote$commit\n156,408 constraints\nK=19", fillcolor="#FF6347", color="#333333"];
+  "vote$reveal" [label="vote$reveal\n146,832 constraints\nK=19", fillcolor="#FF6347", color="#333333"];
+
+
+  note [shape=note, fillcolor="#FFFFFF", color="#333333", fontcolor="#000000",
+        label="No inter-circuit dependencies detected.\nCircuits are independent or call external library functions."];
+}

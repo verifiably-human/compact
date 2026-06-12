@@ -1,0 +1,33 @@
+digraph PerformanceHeatmap {
+  rankdir=TB;
+  bgcolor="#FFFFFF";
+  fontcolor="#000000";
+  node [shape=box, style=filled, fontname="Arial", fontsize=10, fontcolor="#000000"];
+  edge [fontname="Arial", fontsize=8, fontcolor="#000000"];
+
+  label="Performance Heatmap\nContract: compliant-token-full.compact\nTotal Proving Time: 241.1s";
+  labelloc="t";
+  fontsize=14;
+
+  "mintCustodial" [label="mintCustodial\n399,984 constraints\nProving Time: 30.1s\nMemory: 549MB", fillcolor="#FF6347", color="#333333"];
+  "prepareWithdraw" [label="prepareWithdraw\n357,960 constraints\nProving Time: 26.9s\nMemory: 544MB", fillcolor="#FF6347", color="#333333"];
+  "mintToHolder" [label="mintToHolder\n308,124 constraints\nProving Time: 23.2s\nMemory: 538MB", fillcolor="#FF6347", color="#333333"];
+  "custodialTransfer" [label="custodialTransfer\n285,780 constraints\nProving Time: 21.5s\nMemory: 535MB", fillcolor="#FF6347", color="#333333"];
+  "shieldedTransferToContract" [label="shieldedTransferToContract\n223,872 constraints\nProving Time: 16.9s\nMemory: 528MB", fillcolor="#FF6347", color="#333333"];
+  "burnCustodial" [label="burnCustodial\n210,780 constraints\nProving Time: 15.9s\nMemory: 526MB", fillcolor="#FF6347", color="#333333"];
+  "shieldedTransfer" [label="shieldedTransfer\n196,608 constraints\nProving Time: 14.8s\nMemory: 524MB", fillcolor="#FF6347", color="#333333"];
+  "forceTransfer" [label="forceTransfer\n187,704 constraints\nProving Time: 14.2s\nMemory: 523MB", fillcolor="#FF6347", color="#333333"];
+  "executeWithdraw" [label="executeWithdraw\n137,856 constraints\nProving Time: 10.4s\nMemory: 517MB", fillcolor="#FF6347", color="#333333"];
+  "mergeTwoCoins" [label="mergeTwoCoins\n110,556 constraints\nProving Time: 8.4s\nMemory: 514MB", fillcolor="#FF6347", color="#333333"];
+  "mergeWithImmediate" [label="mergeWithImmediate\n109,896 constraints\nProving Time: 8.3s\nMemory: 514MB", fillcolor="#FF6347", color="#333333"];
+  "initializeToken" [label="initializeToken\n97,656 constraints\nProving Time: 7.4s\nMemory: 512MB", fillcolor="#FFA500", color="#333333"];
+  "updatePolicy" [label="updatePolicy\n94,044 constraints\nProving Time: 7.2s\nMemory: 512MB", fillcolor="#FFA500", color="#333333"];
+  "freeze" [label="freeze\n89,088 constraints\nProving Time: 6.8s\nMemory: 511MB", fillcolor="#FFA500", color="#333333"];
+  "unfreeze" [label="unfreeze\n87,924 constraints\nProving Time: 6.7s\nMemory: 511MB", fillcolor="#FFA500", color="#333333"];
+  "addToAllowlist" [label="addToAllowlist\n61,140 constraints\nProving Time: 4.7s\nMemory: 508MB", fillcolor="#FFA500", color="#333333"];
+  "pause" [label="pause\n59,244 constraints\nProving Time: 4.5s\nMemory: 508MB", fillcolor="#FFA500", color="#333333"];
+  "removeFromAllowlist" [label="removeFromAllowlist\n58,992 constraints\nProving Time: 4.5s\nMemory: 508MB", fillcolor="#FFA500", color="#333333"];
+  "addAdmin" [label="addAdmin\n37,572 constraints\nProving Time: 2.9s\nMemory: 505MB", fillcolor="#FFA500", color="#333333"];
+  "unpause" [label="unpause\n36,168 constraints\nProving Time: 2.8s\nMemory: 505MB", fillcolor="#FFA500", color="#333333"];
+  "removeAdmin" [label="removeAdmin\n35,424 constraints\nProving Time: 2.8s\nMemory: 505MB", fillcolor="#FFA500", color="#333333"];
+}

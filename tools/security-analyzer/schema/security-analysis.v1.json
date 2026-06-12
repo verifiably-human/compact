@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://midnight.network/coip/security-analysis/v1.0.0.json",
+  "title": "Compact security analysis output (v1.0.0)",
+  "description": "Schema for compiler/security-analysis.json emitted by the Compact compiler on every successful compile. See coips/coip-xxxx-security-analysis-output.md for the canonical text.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "witness_count", "leaks", "disclosures"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.\\d+\\.\\d+$",
+      "description": "Semver. This document covers major version 1."
+    },
+    "status": {
+      "enum": ["clean", "leaks-found"],
+      "description": "'clean' iff leaks is empty. In practice the file is only emitted on successful compiles, which implies 'clean'; the schema reserves 'leaks-found' for forward compatibility."
+    },
+    "witness_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of `witness` declarations in the contract. Constructor/circuit-argument origins do not count."
+    },
+    "leaks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/leak" }
+    },
+    "disclosures": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/disclosure" }
+    }
+  },
+  "$defs": {
+    "srcLoc": {
+      "description": "Source location. Either {file,line,column} or, when line/column resolution is unavailable, {file,character}.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["file", "line", "column"],
+          "properties": {
+            "file": { "type": "string" },
+            "line": { "type": "integer", "minimum": 1 },
+            "column": { "type": "integer", "minimum": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["file", "character"],
+          "properties": {
+            "file": { "type": "string" },
+            "character": { "type": "integer", "minimum": 0 }
+          }
+        }
+      ]
+    },
+    "origin": {
+      "description": "Where the witness value enters the program.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "function", "location"],
+          "properties": {
+            "kind": { "const": "witness-return-value" },
+            "function": { "type": "string" },
+            "location": { "$ref": "#/$defs/srcLoc" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "argument", "location"],
+          "properties": {
+            "kind": { "const": "constructor-argument" },
+            "argument": { "type": "string" },
+            "location": { "$ref": "#/$defs/srcLoc" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "function", "argument", "location"],
+          "properties": {
+            "kind": { "const": "circuit-argument" },
+            "function": { "type": "string" },
+            "argument": { "type": "string" },
+            "location": { "$ref": "#/$defs/srcLoc" }
+          }
+        }
+      ]
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "location", "exposure"],
+      "properties": {
+        "description": { "type": "string" },
+        "location": { "$ref": "#/$defs/srcLoc" },
+        "exposure": {
+          "type": ["string", "null"],
+          "description": "Per-step exposure annotation, e.g. 'a hash of'. null when this step is a transparent re-binding."
+        }
+      }
+    },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["points", "final_exposure"],
+      "properties": {
+        "points": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/point" },
+          "description": "Ordered origin → site. Empty when the disclosure is direct."
+        },
+        "final_exposure": {
+          "type": "string",
+          "description": "Composed end-to-end exposure, e.g. 'the witness value' or 'a hash of the witness value'."
+        }
+      }
+    },
+    "witness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin", "paths"],
+      "properties": {
+        "origin": { "$ref": "#/$defs/origin" },
+        "paths": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/path" },
+          "description": "Alternative data-flow paths from origin to the site."
+        }
+      }
+    },
+    "disclosure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["location", "witnesses"],
+      "properties": {
+        "location": {
+          "$ref": "#/$defs/srcLoc",
+          "description": "The `disclose()` call site."
+        },
+        "witnesses": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/witness" }
+        }
+      }
+    },
+    "leak": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["location", "what", "witnesses"],
+      "properties": {
+        "location": {
+          "$ref": "#/$defs/srcLoc",
+          "description": "Where the leak would occur (e.g. a ledger write)."
+        },
+        "what": {
+          "type": "string",
+          "description": "Human-readable description of the leak site."
+        },
+        "witnesses": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/witness" }
+        }
+      }
+    }
+  }
+}

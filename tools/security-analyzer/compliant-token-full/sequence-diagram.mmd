@@ -1,0 +1,293 @@
+sequenceDiagram
+    participant User
+    participant Contract
+    participant Ledger
+    participant Prover
+
+    Note over User,Prover: Typical Transaction Sequences
+
+    rect rgb(230, 240, 255)
+    Note over User: initializeToken()
+    User->>+Contract: Call initializeToken()
+    Contract->>+Prover: Generate ZK proof
+
+    Note over Contract: Check 1 assertion(s)
+    
+    Contract->>Contract: Call requireOwner()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: addAdmin()
+    User->>+Contract: Call addAdmin()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireOwner()
+    
+    Contract->>Ledger: Update state (admins)
+    Ledger-->>Contract: Confirmed
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: removeAdmin()
+    User->>+Contract: Call removeAdmin()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireOwner()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: pause()
+    User->>+Contract: Call pause()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireAdmin()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: unpause()
+    User->>+Contract: Call unpause()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireOwner()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: mintCustodial()
+    User->>+Contract: Call mintCustodial()
+    Contract->>+Prover: Generate ZK proof
+
+    Note over Contract: Check 1 assertion(s)
+    
+    Contract->>Contract: Call requireAdmin()
+    Contract->>Contract: Call requireNotPaused()
+    Contract->>Contract: Call requireInitialized()
+    Note over Contract: ... and 2 more
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: mintToHolder()
+    User->>+Contract: Call mintToHolder()
+    Contract->>+Prover: Generate ZK proof
+
+    Note over Contract: Check 1 assertion(s)
+    
+    Contract->>Contract: Call requireAdmin()
+    Contract->>Contract: Call requireNotPaused()
+    Contract->>Contract: Call requireInitialized()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: burnCustodial()
+    User->>+Contract: Call burnCustodial()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireAdmin()
+    Contract->>Contract: Call requireNotPaused()
+    Contract->>Contract: Call requireInitialized()
+    Note over Contract: ... and 3 more
+    
+    Contract->>Ledger: Update state (burnCount)
+    Ledger-->>Contract: Confirmed
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: custodialTransfer()
+    User->>+Contract: Call custodialTransfer()
+    Contract->>+Prover: Generate ZK proof
+
+    Note over Contract: Check 1 assertion(s)
+    
+    Contract->>Contract: Call requireAdmin()
+    Contract->>Contract: Call requireNotPaused()
+    Contract->>Contract: Call requireInitialized()
+    Note over Contract: ... and 2 more
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: freeze()
+    User->>+Contract: Call freeze()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireAdmin()
+    Contract->>Contract: Call recordOp()
+    
+    Contract->>Ledger: Update state (frozenAccounts, freezeActionCount)
+    Ledger-->>Contract: Confirmed
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: unfreeze()
+    User->>+Contract: Call unfreeze()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireAdmin()
+    Contract->>Contract: Call recordOp()
+    
+    Contract->>Ledger: Update state (freezeActionCount)
+    Ledger-->>Contract: Confirmed
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: forceTransfer()
+    User->>+Contract: Call forceTransfer()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireAdmin()
+    Contract->>Contract: Call requireInitialized()
+    Contract->>Contract: Call creditAccount()
+    Note over Contract: ... and 2 more
+    
+    Contract->>Ledger: Update state (forceTransferCount)
+    Ledger-->>Contract: Confirmed
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: addToAllowlist()
+    User->>+Contract: Call addToAllowlist()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireAdmin()
+    
+    Contract->>Ledger: Update state (allowedAccounts)
+    Ledger-->>Contract: Confirmed
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: removeFromAllowlist()
+    User->>+Contract: Call removeFromAllowlist()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireAdmin()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: updatePolicy()
+    User->>+Contract: Call updatePolicy()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireOwner()
+    
+    Contract->>Ledger: Update state (policyUpdateCount)
+    Ledger-->>Contract: Confirmed
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: prepareWithdraw()
+    User->>+Contract: Call prepareWithdraw()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireAdmin()
+    Contract->>Contract: Call requireNotPaused()
+    Contract->>Contract: Call requireInitialized()
+    Note over Contract: ... and 3 more
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: executeWithdraw()
+    User->>+Contract: Call executeWithdraw()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireAdmin()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: mergeTwoCoins()
+    User->>+Contract: Call mergeTwoCoins()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireNotPaused()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: mergeWithImmediate()
+    User->>+Contract: Call mergeWithImmediate()
+    Contract->>+Prover: Generate ZK proof
+
+    Contract->>Contract: Call requireNotPaused()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: shieldedTransfer()
+    User->>+Contract: Call shieldedTransfer()
+    Contract->>+Prover: Generate ZK proof
+
+    Note over Contract: Check 1 assertion(s)
+    
+    Contract->>Contract: Call requireNotPaused()
+    Contract->>Contract: Call requireInitialized()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+
+    rect rgb(230, 240, 255)
+    Note over User: shieldedTransferToContract()
+    User->>+Contract: Call shieldedTransferToContract()
+    Contract->>+Prover: Generate ZK proof
+
+    Note over Contract: Check 1 assertion(s)
+    
+    Contract->>Contract: Call requireNotPaused()
+    Contract->>Contract: Call requireInitialized()
+    
+    Prover-->>-Contract: ZK proof generated
+    Contract-->>-User: Transaction complete
+    end
+

@@ -1,0 +1,12 @@
+digraph LedgerInteractions {
+  rankdir=LR;
+  bgcolor="#FFFFFF";
+  node [shape=cylinder, style=filled, fontname="Arial", fontsize=10];
+  edge [fontname="Arial", fontsize=8];
+
+  label="Ledger Interaction Diagram\nContract: counter.compact";
+  labelloc="t";
+  fontsize=14;
+
+  "increment" [label="increment", fillcolor="#DDA0DD", shape=box, color="#333333"];
+}

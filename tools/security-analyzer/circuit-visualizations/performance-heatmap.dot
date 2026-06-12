@@ -1,0 +1,24 @@
+digraph PerformanceHeatmap {
+  rankdir=TB;
+  bgcolor="#FFFFFF";
+  node [shape=box, style=filled, fontname="Arial", fontsize=10];
+  edge [fontname="Arial", fontsize=8];
+
+  label="Performance Heatmap\nContract: counter.compact\nTotal Proving Time: 0.8s";
+  labelloc="t";
+  fontsize=14;
+
+  "increment" [label="increment\n9,408 constraints\nProving Time: 0.8s\nMemory: 502MB", fillcolor="#FFD700", color="#333333"];
+
+  subgraph cluster_legend {
+    label="Performance Impact";
+    style=filled;
+    color="#333333";
+    fillcolor="#FFFFFF";
+
+    perf_low [label="Fast\n(<5s)", fillcolor="#90EE90", shape=box];
+    perf_med [label="Moderate\n(5-30s)", fillcolor="#FFD700", shape=box];
+    perf_high [label="Slow\n(30-120s)", fillcolor="#FFA500", shape=box];
+    perf_vhigh [label="Very Slow\n(>120s)", fillcolor="#FF6347", shape=box];
+  }
+}
