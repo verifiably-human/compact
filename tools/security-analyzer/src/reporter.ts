@@ -4,8 +4,10 @@
  */
 
 import { writeFileSync } from 'fs';
+import { basename, dirname } from 'path';
 import type { AnalysisResult, CircuitMetrics, ReportOptions } from './types.js';
 import { getWarningMessage } from './parser.js';
+import { buildSarifLog, serialiseSarifLog } from './sarif.js';
 
 /**
  * Format bytes as human-readable size
@@ -241,6 +243,14 @@ export function generateReport(result: AnalysisResult, options: ReportOptions): 
       break;
     case 'json':
       content = generateJsonReport(result);
+      break;
+    case 'sarif':
+      content = serialiseSarifLog(buildSarifLog({
+        result,
+        toolVersion: '1.0.0',
+        contractUri: basename(result.contractFile),
+        contractSrcDir: dirname(result.contractFile),
+      }));
       break;
     default:
       throw new Error(`Unknown format: ${options.format}`);

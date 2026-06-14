@@ -6,6 +6,34 @@ All notable changes to the `compact-security-analyzer` tool. Format follows
 
 ## [Unreleased]
 
+### Added — SARIF 2.1.0 output (see specs/SPEC-2-sarif.md)
+
+- **`--format sarif` flag on the `analyze` command.** Emits a SARIF
+  2.1.0 log suitable for upload via
+  `github/codeql-action/upload-sarif`. Findings appear inline on PRs
+  in GitHub Code Scanning.
+- **All three finding kinds mapped.** Security findings, nonce
+  findings, and correlator findings all become SARIF results, each
+  with the matching `ruleId` from the unified rule taxonomy
+  (`access-control:missing`, `nonce:constant-return-witness`,
+  `correlator:cross-circuit`, etc.).
+- **Severity → SARIF level.** critical/high → `error`,
+  medium → `warning`, low/info → `note`.
+- **Suppressions surfaced as SARIF `suppressions` entries.** Acked
+  findings (baseline-file or inline `@audit-ack`) are marked as
+  dismissed in the SARIF, so GitHub Code Scanning shows them as
+  "dismissed by tool" rather than active alerts. Inline acks use
+  `kind: "inSource"`; file-based acks use `kind: "external"`.
+- **`tool.driver.rules` lists every defined rule.** Help text from
+  the rule definition is available on hover in the GH UI even for
+  rules that didn't fire on a given run.
+- **Stable finding IDs mirrored into `partialFingerprints`** so GH
+  Code Scanning can correlate findings across runs even when source
+  positions shift.
+- **9 unit tests** in `sarif.test.ts` covering rule-id mapping,
+  severity → level mapping, partial fingerprints, suppression
+  emission, and an empty-findings happy path.
+
 ### Added — Baselines / suppression workflow (see specs/SPEC-1-baselines.md)
 
 - **`.security-analyzer-baseline.json`.** Per-repo file listing

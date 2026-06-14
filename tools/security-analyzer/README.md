@@ -12,6 +12,7 @@ Constraint analysis, security review, and value/privacy-at-risk assessment for M
 - 🎨 **Visual diagrams**: dependency graphs, constraint flows, performance heatmaps.
 - 🛡️ **Severity-sorted findings** with stable IDs for cross-run tracking. Fan-out deduped per (circuit, witness).
 - 🔇 **Baselines / suppression workflow**. `.security-analyzer-baseline.json` per repo lets the team ack reviewed findings; CI surfaces only net-new ones. Inline `@audit-ack: <id>` annotations work too. See [specs/SPEC-1-baselines.md](specs/SPEC-1-baselines.md).
+- 📤 **SARIF 2.1.0 output**. `--format sarif` emits a SARIF log for GitHub Code Scanning / GitLab SAST / Sonarqube. Findings appear inline on PRs. Acked findings emit `suppressions` so they show as "dismissed by tool". See [specs/SPEC-2-sarif.md](specs/SPEC-2-sarif.md).
 - 🚫 **Midnight-native by design**. No EVM-template rules (reentrancy, `msg.sender`, `delegatecall`, SWC numbers). Findings describe attacks expressible in the Midnight execution model.
 - 🔧 **CI/CD ready**: structured JSON, exit codes, no inline scripts in the HTML report (CSP-tight).
 

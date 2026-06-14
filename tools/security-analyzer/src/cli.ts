@@ -37,7 +37,7 @@ program
   .description('Analyze one or more Compact contracts')
   .argument('<files...>', 'Compact contract files (.compact)')
   .option('-o, --output <file>', 'Output file (default: console)')
-  .option('-f, --format <format>', 'Output format: console, markdown, json', 'console')
+  .option('-f, --format <format>', 'Output format: console, markdown, json, sarif', 'console')
   .option('-v, --verbose', 'Show detailed metrics', false)
   .option('--no-warnings', 'Suppress warnings for large circuits')
   .option('--timeout <ms>', 'Compilation timeout in milliseconds', '120000')
@@ -81,7 +81,7 @@ program
 
       // Generate reports
       const reportOptions: ReportOptions = {
-        format: options.format as 'console' | 'markdown' | 'json',
+        format: options.format as 'console' | 'markdown' | 'json' | 'sarif',
         outputFile: options.output,
         verbose: options.verbose,
         warnings: options.warnings,

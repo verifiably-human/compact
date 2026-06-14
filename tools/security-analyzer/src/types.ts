@@ -350,7 +350,7 @@ export interface PolicyAssessment {
 }
 
 export interface ReportOptions {
-  format: 'console' | 'markdown' | 'json';
+  format: 'console' | 'markdown' | 'json' | 'sarif';
   outputFile?: string;
   verbose: boolean;
   warnings: boolean;
