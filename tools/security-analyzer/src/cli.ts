@@ -5,10 +5,17 @@
  */
 
 import { Command } from 'commander';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { resolve, join, dirname, basename } from 'path';
 import { checkCompilerAvailable } from './compiler.js';
 import { analyzeContract, analyzeContracts } from './analyzer.js';
+import {
+  loadBaseline,
+  writeBaseline,
+  generateBaseline,
+  type AckEntry,
+  type BaselineFile,
+} from './baseline.js';
 import { generateReport } from './reporter.js';
 import { CircuitVisualizer } from './visualizer.js';
 import { ComprehensiveReportGenerator } from './report-generator.js';
@@ -206,6 +213,11 @@ program
   .option('--no-visualizations', 'Exclude visualizations from report')
   .option('--witness-file <path>', 'Path to the witness JS/TS implementation file. Used by the nonce analyzer to detect constant-return witnesses. Omit to auto-search conventional locations.')
   .option('--from-build-dir <path>', 'Skip compilation; consume an existing compactc output directory (must contain compiler/, optionally zkir/ and keys/). Useful for CI pipelines that already compiled, or for fast iteration on the analyzer without paying the compile cost.')
+  .option('--baseline-file <path>', 'Honor an explicit baseline file. Defaults to auto-discovery: ./.security-analyzer-baseline.json walking up to the repo root.')
+  .option('--no-baseline', 'Ignore any baseline file; report every finding. Useful for first-run audits.')
+  .option('--baseline-mode <mode>', 'How acked findings are reported: suppress | downgrade-to-info | accounting-only (default: suppress)', 'suppress')
+  .option('--update-baseline', 'Walk current findings and write entries to the baseline file. Reads ack reasons from stdin as a JSON object {findingId: reason}; pass --update-baseline-by <name> to record the author. Existing acks are preserved.', false)
+  .option('--update-baseline-by <name>', 'Author identifier recorded on baseline entries written by --update-baseline.', 'unknown@local')
   .option('--timeout <ms>', 'Compilation timeout in milliseconds', '120000')
   .action(async (files: string[], options) => {
     try {
@@ -233,6 +245,26 @@ program
         console.error('');
         console.error('Or ensure "compact" is in your PATH.');
         process.exit(1);
+      }
+
+      // --update-baseline: run analysis to gather findings, read reasons
+      // from stdin as a JSON map, write the baseline file, exit. The
+      // report HTML is NOT generated in this mode — the goal is a tight
+      // "audit triage then commit" loop, not a full report.
+      if (options.updateBaseline) {
+        if (files.length !== 1) {
+          console.error('❌ Error: --update-baseline takes exactly one .compact file');
+          process.exit(1);
+        }
+        const baselinePath = options.baselineFile
+          ?? join(dirname(resolve(files[0])), '.security-analyzer-baseline.json');
+        try {
+          await runUpdateBaseline(files[0], baselinePath, options);
+          process.exit(0);
+        } catch (err) {
+          console.error(`❌ Error: ${err instanceof Error ? err.message : String(err)}`);
+          process.exit(1);
+        }
       }
 
       const multi = files.length > 1;
@@ -295,6 +327,87 @@ program
     }
   });
 
+/**
+ * Run the analyzer in --update-baseline mode. Discovers findings and
+ * writes (or updates) a baseline file using reasons supplied via stdin.
+ *
+ * stdin format: JSON object mapping finding ID → reason string. Any
+ * finding ID without a reason in the input is skipped (NOT silently
+ * acked). Existing entries in the baseline are preserved.
+ *
+ * If stdin is empty or `{}`, no new entries are written — useful as a
+ * "list current findings" smoke test before authoring reasons.
+ */
+async function runUpdateBaseline(
+  file: string,
+  baselinePath: string,
+  options: any,
+): Promise<void> {
+  console.log(`🔧 Updating baseline for ${basename(file)}...`);
+  const result = await analyzeContract(file, {
+    verbose: false,
+    timeout: parseInt(options.timeout, 10),
+    witnessFile: options.witnessFile,
+    fromBuildDir: options.fromBuildDir,
+    // Don't suppress acks during update — we want to surface every
+    // current finding so the human can decide which need acks.
+    noBaseline: true,
+  });
+
+  const security = result.security?.findings ?? [];
+  const nonce = result.nonceAnalysis?.findings ?? [];
+  const correlator = result.correlatorAnalysis?.findings ?? [];
+
+  // Build a flat catalog for the user, written to stderr so stdout stays
+  // reserved for any future programmatic emission.
+  console.error('\nCurrent findings (paste reasons into the JSON map you pipe to stdin):');
+  const announce = (kind: string, list: { id?: string; severity?: string; title?: string }[]) => {
+    for (const f of list) {
+      if (!f.id) continue;
+      const t = (f.title ?? '').slice(0, 80);
+      console.error(`  [${kind}] ${f.id}  ${f.severity ?? ''}  ${t}`);
+    }
+  };
+  announce('security', security as { id?: string; severity?: string; title?: string }[]);
+  announce('nonce', nonce as { id?: string; severity?: string; title?: string }[]);
+  announce('correlator', correlator as { id?: string; severity?: string; title?: string }[]);
+  console.error('');
+
+  // Read reasons from stdin. Empty input → no new entries written.
+  let reasonsRaw = '';
+  try {
+    reasonsRaw = readFileSync(0, 'utf-8');
+  } catch {
+    // No piped input — treat as empty.
+  }
+  let reasons: Record<string, string> = {};
+  if (reasonsRaw.trim()) {
+    try {
+      reasons = JSON.parse(reasonsRaw);
+    } catch (e) {
+      throw new Error(`stdin is not valid JSON: ${(e as Error).message}`);
+    }
+  }
+
+  const prior: BaselineFile | undefined = existsSync(baselinePath)
+    ? loadBaseline(baselinePath).baseline
+    : undefined;
+
+  const updated = generateBaseline({
+    security: security as any[],
+    nonce: nonce as any[],
+    correlator: correlator as any[],
+    prior,
+    reasonByIdFn: (id) => reasons[id] ?? null,
+    ackBy: options.updateBaselineBy ?? 'unknown@local',
+    toolVersion: 'security-analyzer@1.0.0',
+  });
+
+  writeBaseline(baselinePath, updated);
+  const newCount = updated.acks.length - (prior?.acks.length ?? 0);
+  console.log(`✅ Wrote ${baselinePath} (${updated.acks.length} total, ${newCount} new)`);
+}
+
 async function generateOneReport(
   file: string,
   outputDir: string,
@@ -312,7 +425,23 @@ async function generateOneReport(
         timeout: parseInt(options.timeout, 10),
         witnessFile: options.witnessFile,
         fromBuildDir: options.fromBuildDir,
+        baselineFile: options.baselineFile,
+        noBaseline: options.baseline === false || options.noBaseline === true,
+        baselineMode: options.baselineMode as 'suppress' | 'downgrade-to-info' | 'accounting-only',
       });
+
+      if (result.baselineApplication) {
+        const ba = result.baselineApplication;
+        const acked = ba.acksApplied;
+        const netNew = ba.netNewFindings;
+        const expired = ba.acksExpired.length;
+        const unmatched = ba.acksUnmatched.length;
+        console.log(
+          `   🔇 Baseline: ${acked} acked, ${netNew} net-new high/critical` +
+          (expired ? `, ${expired} expired` : '') +
+          (unmatched ? `, ${unmatched} unmatched (consider removing from baseline)` : '')
+        );
+      }
       console.log('   ✅ Analysis complete\n');
 
       // Generate visualizations if requested

@@ -11,6 +11,7 @@ Constraint analysis, security review, and value/privacy-at-risk assessment for M
 - 📊 **Per-circuit constraint metrics** from real compactc output (constraint counts, K-values, proving-time estimates).
 - 🎨 **Visual diagrams**: dependency graphs, constraint flows, performance heatmaps.
 - 🛡️ **Severity-sorted findings** with stable IDs for cross-run tracking. Fan-out deduped per (circuit, witness).
+- 🔇 **Baselines / suppression workflow**. `.security-analyzer-baseline.json` per repo lets the team ack reviewed findings; CI surfaces only net-new ones. Inline `@audit-ack: <id>` annotations work too. See [specs/SPEC-1-baselines.md](specs/SPEC-1-baselines.md).
 - 🚫 **Midnight-native by design**. No EVM-template rules (reentrancy, `msg.sender`, `delegatecall`, SWC numbers). Findings describe attacks expressible in the Midnight execution model.
 - 🔧 **CI/CD ready**: structured JSON, exit codes, no inline scripts in the HTML report (CSP-tight).
 
@@ -639,14 +640,65 @@ Recognised tags:
 - Multiple `// @<key>: <tag>` annotations on the same circuit are allowed; only the first `@access-control` annotation is honoured.
 - An unknown tag (e.g., `// @access-control: probably-fine`) is parsed but not honoured; the finding stays at its original severity with a note about the unknown tag.
 
-### Future annotation keys
+### `@disclose-intent: <tag>`
 
-The same mechanism is forward-compatible with phase-3 work:
+Acknowledge a deliberate correlator on the annotated circuit. Tags: `intentional-correlator`, `nullifier-emission`, `commitment-output`, `public-by-design`, `protocol-required`. Downgrades correlator findings on the annotated circuit to `info`.
 
-- `@disclose-intent: <tag>` — acknowledge a deliberate correlator. Tags: `intentional-correlator`, `nullifier-emission`, `commitment-output`, `public-by-design`, `protocol-required`.
-- `@audit-ack: <finding-id>` — acknowledge a specific reviewed finding by its stable ID.
+### `@audit-ack: <finding-id>`
 
-These are parsed today (the parser accepts any of the three keys) but not yet honoured by the corresponding analyzers. Adding them now does no harm.
+Acknowledge a specific reviewed finding by its stable ID (e.g. `sec-7f9e3a2b1c4d`). Equivalent to a file-based ack entry but lives next to the relevant code. The reason is the trailing comment lines.
+
+```compact
+// @audit-ack: sec-7f9e3a2b1c4d
+//
+// The "Missing authorization check" on processCompliantPayment is
+// intentional — every call asserts compliance internally.
+export circuit processCompliantPayment(...): Boolean {
+  // ...
+}
+```
+
+See the [Baselines section](#baselines) below for the alternative file-based workflow.
+
+## Baselines
+
+The analyzer supports a per-repo baseline file that records which findings the team has reviewed and accepted. CI then surfaces only **net-new** findings — the ones that appeared since the last audit pass. Without this, a contract with 50 findings stays at 50 forever and alert fatigue sets in.
+
+### Workflow
+
+1. Run the analyzer normally:
+   ```bash
+   compact-analyzer report contracts/MyContract.compact
+   ```
+2. Review the findings. For each one you accept, copy its ID (e.g. `sec-7f9e3a2b1c4d`) into a JSON map:
+   ```json
+   {
+     "sec-7f9e3a2b1c4d": "Intentionally permissionless to allow demo runs. See docs/design.md.",
+     "nonce-abcdef012345": "Witness returns a public commitment by design; not a privacy-affecting nonce."
+   }
+   ```
+3. Pipe that map to `--update-baseline`:
+   ```bash
+   compact-analyzer report contracts/MyContract.compact \
+     --update-baseline \
+     --update-baseline-by alice@example.com \
+     < reasons.json
+   ```
+4. Commit `.security-analyzer-baseline.json`. Future runs honour the acks; only net-new findings break CI.
+
+### Modes
+
+- `--baseline-mode suppress` (default) — acked findings disappear from the report.
+- `--baseline-mode downgrade-to-info` — visible at info severity, with ack metadata attached. Use during audit re-reviews.
+- `--baseline-mode accounting-only` — findings stay at original severity in the report; only the net-new tally excludes them.
+
+### File format
+
+See [specs/SPEC-1-baselines.md](specs/SPEC-1-baselines.md) for the full schema. Each entry carries `id`, `severity_at_time_of_ack`, `title`, `ack_by`, `ack_at`, `ack_reason`, optional `ack_expires_at`. Findings whose severity has risen since ack-time are flagged `↑ escalated` in the report.
+
+### Inline vs file
+
+Both inline `// @audit-ack: <id>` annotations and the baseline file apply. Inline acks live next to the code (best for findings tied to a specific circuit); the baseline file holds the rest. The same ID can be acked via either route.
 
 ## Testing
 

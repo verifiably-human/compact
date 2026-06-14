@@ -6,6 +6,48 @@ All notable changes to the `compact-security-analyzer` tool. Format follows
 
 ## [Unreleased]
 
+### Added — Baselines / suppression workflow (see specs/SPEC-1-baselines.md)
+
+- **`.security-analyzer-baseline.json`.** Per-repo file listing
+  findings the team has reviewed and accepted. The analyzer
+  auto-discovers it next to the contract source (walking up to the
+  repo root); pass `--baseline-file <path>` to override or
+  `--no-baseline` to ignore.
+- **Stable finding IDs.** Every security finding now carries a
+  content-addressed `id` of the form `sec-<12 hex>`. Combined with the
+  existing `nonce-<hex>` and `corr-<hex>` IDs, all analyzer findings
+  are addressable across runs. Stable across whitespace edits and
+  unrelated source changes; intentionally NOT stable across renames of
+  the affected circuit/witness/file (re-review prompt).
+- **Three baseline modes.** `--baseline-mode suppress` (default —
+  acked findings disappear from the report), `downgrade-to-info`
+  (visible at info level with ack metadata attached), or
+  `accounting-only` (visible at original severity, only the net-new
+  tally excludes them).
+- **Inline `@audit-ack: <id>` annotations.** Already supported by the
+  annotation parser; now wired into the baseline pipeline. Inline acks
+  carry the finding ID and the trailing comment lines as the ack
+  reason. Convenient for one-off acks that belong next to the code.
+- **`--update-baseline`.** Discovers current findings, prints them to
+  stderr, reads `{findingId: reason}` from stdin, writes/merges the
+  baseline file. Existing acks preserved; only IDs with reasons are
+  added. Author identifier via `--update-baseline-by`.
+- **Net-new accounting.** CLI summarises every run with
+  `Baseline: N acked, M net-new high/critical, K expired, L unmatched`.
+  `M = 0` is what CI gates aim for after triage.
+- **Severity escalation tracking.** When a finding's severity rises
+  above the value recorded at ack time, the suppressed-findings table
+  flags it as `↑ escalated` so reviewers know to re-look.
+- **Expiry support.** `ack_expires_at` field; expired entries are
+  treated as not-acked and surface in the `acksExpired` list.
+- **HTML report block.** New "Baseline applied" section near the top
+  of the report with the headline counts and a collapsible table of
+  every suppressed finding with its ack metadata.
+- **23 new unit tests** in `finding-id.test.ts` and `baseline.test.ts`
+  covering ID stability properties, baseline schema validation, all
+  three baseline modes, expiry handling, severity-escalation
+  detection, and the `--update-baseline` shape.
+
 ### Added — Phase 4: Deploy Policy Assessment
 
 - **PolicyAssessor.** New module that derives a single

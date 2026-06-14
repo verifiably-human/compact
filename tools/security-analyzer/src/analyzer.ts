@@ -25,6 +25,13 @@ import {
   mergeSecurityFindings,
 } from './compiler-security-reader.js';
 import type { AnalysisResult, CompilerOptions, ContractProfile, CorrelatorAnalysis, NonceAnalysis, PolicyAssessment, ValueInventory } from './types.js';
+import { addIdsToSecurityFindings } from './finding-id.js';
+import {
+  loadBaseline,
+  applyBaseline,
+  inlineAnnotationAcks,
+  type BaselineApplication,
+} from './baseline.js';
 
 /**
  * Analyze a Compact contract
@@ -105,6 +112,7 @@ export async function analyzeContract(
     let nonceAnalysis: NonceAnalysis | undefined;
     let correlatorAnalysis: CorrelatorAnalysis | undefined;
     let policyAssessment: PolicyAssessment | undefined;
+    let baselineApplication: BaselineApplication | undefined;
     try {
       const compilerAnalysis = readCompilerSecurityAnalysis(workDir);
       const compilerSecurityAnalysis = compilerAnalysis
@@ -128,6 +136,9 @@ export async function analyzeContract(
       const heuristicAnalysis = securityAnalyzer.analyze();
 
       securityAnalysis = mergeSecurityFindings(compilerSecurityAnalysis, heuristicAnalysis);
+      // Every finding gets a stable ID before downstream consumers
+      // (baselines, SARIF emitter, report) ever see it.
+      addIdsToSecurityFindings(securityAnalysis.findings);
 
       // Profile + Value Inventory. Runs after security analysis so it
       // can read the access-control findings to classify authorityModel
@@ -239,6 +250,42 @@ export async function analyzeContract(
         }
       }
 
+      // Baseline application (phase: baselines). Acks loaded from
+      // .security-analyzer-baseline.json plus inline @audit-ack
+      // annotations remove or downgrade findings the team has already
+      // reviewed. Runs BEFORE policy assessment so the policy verdict
+      // honours the baseline.
+      if (!options.noBaseline) {
+        const baselinePath = options.baselineFile
+          ?? resolveDefaultBaselinePath(absolutePath);
+        try {
+          const fileAcks = baselinePath
+            ? loadBaseline(baselinePath).baseline.acks
+            : [];
+          const inlineAcks = inlineAnnotationAcks(securityAnalyzer.getAnnotations());
+          baselineApplication = applyBaseline({
+            security: securityAnalysis.findings,
+            nonce: nonceAnalysis?.findings ?? [],
+            correlator: correlatorAnalysis?.findings ?? [],
+            fileAcks,
+            inlineAcks,
+            mode: options.baselineMode ?? 'suppress',
+          });
+          securityAnalysis = {
+            ...securityAnalysis,
+            findings: baselineApplication.filteredSecurity,
+          };
+          if (nonceAnalysis) {
+            nonceAnalysis = { ...nonceAnalysis, findings: baselineApplication.filteredNonce };
+          }
+          if (correlatorAnalysis) {
+            correlatorAnalysis = { ...correlatorAnalysis, findings: baselineApplication.filteredCorrelator };
+          }
+        } catch (err) {
+          console.warn('⚠️  Baseline application failed:', err instanceof Error ? err.message : 'Unknown error');
+        }
+      }
+
       // Policy assessment (phase 4). Synthesises a deploy
       // recommendation from the profile + value inventory + findings.
       // Runs last so it has access to every other analyzer's output.
@@ -255,6 +302,7 @@ export async function analyzeContract(
       } catch (err) {
         console.warn('⚠️  Policy assessment failed:', err instanceof Error ? err.message : 'Unknown error');
       }
+
     } catch (error) {
       console.warn('⚠️  Security analysis failed:', error instanceof Error ? error.message : 'Unknown error');
       securityAnalysis = undefined;
@@ -287,6 +335,7 @@ export async function analyzeContract(
       nonceAnalysis,
       correlatorAnalysis,
       policyAssessment,
+      baselineApplication,
     };
 
     return result;
@@ -297,6 +346,28 @@ export async function analyzeContract(
       rmSync(workDir, { recursive: true, force: true });
     }
   }
+}
+
+/**
+ * Look for a default baseline file next to the contract source. Returns
+ * the path if found, or null. Search order:
+ *   1. <contractDir>/.security-analyzer-baseline.json
+ *   2. Walk parent directories looking for the same filename, up to the
+ *      filesystem root or the first git repo root.
+ */
+function resolveDefaultBaselinePath(contractPath: string): string | null {
+  const baselineName = '.security-analyzer-baseline.json';
+  let dir = resolve(contractPath, '..');
+  for (let depth = 0; depth < 32; depth++) {
+    const candidate = join(dir, baselineName);
+    if (existsSync(candidate)) return candidate;
+    const gitDir = join(dir, '.git');
+    if (existsSync(gitDir)) return null; // stop at repo root
+    const parent = resolve(dir, '..');
+    if (parent === dir) return null;     // filesystem root
+    dir = parent;
+  }
+  return null;
 }
 
 /**

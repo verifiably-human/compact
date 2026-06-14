@@ -62,6 +62,7 @@ export interface AnalysisResult {
   nonceAnalysis?: NonceAnalysis;
   correlatorAnalysis?: CorrelatorAnalysis;
   policyAssessment?: PolicyAssessment;
+  baselineApplication?: import('./baseline.js').BaselineApplication;
 }
 
 // ---------------------------------------------------------------------------
@@ -379,6 +380,14 @@ export interface CompilerOptions {
   // pipelines that already compiled separately, or for re-running the
   // analyzer without paying the compile cost again.
   fromBuildDir?: string;
+  // Baseline options (see specs/SPEC-1-baselines.md).
+  // baselineFile: explicit path to a .security-analyzer-baseline.json.
+  //   When unset, the analyzer looks next to the contract file (sibling
+  //   path or repo-root) and uses any file it finds. Pass `noBaseline`
+  //   to disable that auto-discovery for a single run.
+  baselineFile?: string;
+  noBaseline?: boolean;
+  baselineMode?: 'suppress' | 'downgrade-to-info' | 'accounting-only';
 }
 
 export interface ZkirFileInfo {

@@ -21,6 +21,12 @@ import {
 export type SecuritySeverity = 'critical' | 'high' | 'medium' | 'low' | 'info';
 
 export interface SecurityFinding {
+  /**
+   * Stable content-addressed ID. Populated by deriveSecurityFindingId
+   * after the finding is constructed. Used by baselines and the
+   * `@audit-ack` annotation to refer to a specific finding across runs.
+   */
+  id?: string;
   type: 'privacy-leak' | 'access-control' | 'state-mutation' | 'nullifier' | 'taint' | 'side-channel' | 'info-flow';
   severity: SecuritySeverity;
   title: string;
@@ -32,6 +38,22 @@ export interface SecurityFinding {
   };
   recommendation: string;
   impact: string;
+  /**
+   * When an ack from a baseline file or `@audit-ack` annotation applies,
+   * this carries the metadata for the report. Populated by the baseline
+   * applier; never set during finding construction.
+   */
+  ack?: FindingAck;
+}
+
+export interface FindingAck {
+  source: 'baseline-file' | 'inline-annotation';
+  by: string;
+  at: string;            // ISO-8601 UTC
+  reason: string;
+  expiresAt?: string;    // ISO-8601 UTC
+  severityAtAck?: SecuritySeverity;
+  severityEscalatedSinceAck?: boolean;
 }
 
 export interface SecurityAnalysisResult {

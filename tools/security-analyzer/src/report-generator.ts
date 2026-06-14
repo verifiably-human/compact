@@ -82,6 +82,7 @@ export class ComprehensiveReportGenerator {
 <body>
   <div class="container">
     ${this.generateHeader()}
+    ${this.result.baselineApplication ? this.generateBaselineBanner() : ''}
     ${this.result.policyAssessment ? this.generatePolicyAssessment() : ''}
     ${this.result.profile ? this.generateContractProfile() : ''}
     ${this.generateSummary()}
@@ -865,6 +866,75 @@ export class ComprehensiveReportGenerator {
       </div>
     </header>
     `;
+  }
+
+  /**
+   * One-row banner summarising the baseline outcome. Rendered when
+   * `result.baselineApplication` is set (i.e. a baseline file or inline
+   * acks were honoured). Acked findings appear in their own collapsible
+   * list so reviewers can see what was suppressed.
+   */
+  private generateBaselineBanner(): string {
+    const ba = this.result.baselineApplication;
+    if (!ba) return '';
+    const acked = ba.acksApplied;
+    const netNew = ba.netNewFindings;
+    const expired = ba.acksExpired.length;
+    const unmatched = ba.acksUnmatched.length;
+    const escape = (s: string) => s.replace(/[&<>"']/g, c => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c
+    ));
+    const sec = ba.suppressedSecurity;
+    const non = ba.suppressedNonce;
+    const cor = ba.suppressedCorrelator;
+    const totalSuppressed = sec.length + non.length + cor.length;
+    const suppressedRows = [
+      ...sec.map(f => ({
+        id: f.id ?? '(no id)',
+        kind: 'security',
+        title: f.title,
+        ack: f.ack,
+      })),
+      ...non.map(f => ({
+        id: f.id ?? '(no id)',
+        kind: 'nonce',
+        title: `${f.kind}: ${f.witnessFunction ?? f.ledgerField ?? '?'}`,
+        ack: (f as { ack?: { reason: string; by: string; source: string; severityEscalatedSinceAck?: boolean } }).ack,
+      })),
+      ...cor.map(f => ({
+        id: f.id ?? '(no id)',
+        kind: 'correlator',
+        title: f.linkabilitySummary,
+        ack: (f as { ack?: { reason: string; by: string; source: string; severityEscalatedSinceAck?: boolean } }).ack,
+      })),
+    ];
+    const rowsHtml = suppressedRows.map(r => `
+      <tr>
+        <td><code>${escape(r.id)}</code></td>
+        <td>${escape(r.kind)}</td>
+        <td>${escape(r.title.slice(0, 80))}</td>
+        <td>${escape(r.ack?.by ?? '')} ${r.ack?.source === 'inline-annotation' ? '<small>(inline)</small>' : ''}</td>
+        <td>${escape(r.ack?.reason ?? '')}</td>
+        <td>${r.ack?.severityEscalatedSinceAck ? '<strong style="color:#b91c1c">↑ escalated</strong>' : ''}</td>
+      </tr>`).join('');
+    return `
+    <section class="baseline-banner">
+      <h2>Baseline applied</h2>
+      <p>
+        <strong>${acked}</strong> acked,
+        <strong>${netNew}</strong> net-new high/critical
+        ${expired ? `, <strong>${expired}</strong> expired` : ''}
+        ${unmatched ? `, <strong>${unmatched}</strong> unmatched (consider removing from baseline)` : ''}
+      </p>
+      ${totalSuppressed > 0 ? `
+      <details>
+        <summary>${totalSuppressed} suppressed finding${totalSuppressed === 1 ? '' : 's'}</summary>
+        <table class="baseline-suppressed">
+          <thead><tr><th>ID</th><th>Kind</th><th>Title</th><th>Ack by</th><th>Reason</th><th>Severity</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </details>` : ''}
+    </section>`;
   }
 
   /**
