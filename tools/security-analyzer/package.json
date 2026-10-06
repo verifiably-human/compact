@@ -2,7 +2,7 @@
   "name": "compact-security-analyzer",
   "version": "1.0.0",
   "private": true,
-  "description": "Constraint and security analysis for Midnight Compact smart contracts. Consumes compiler/security-analysis.json (COIP v1.0.0).",
+  "description": "Circuit-size and security analysis for Midnight Compact smart contracts. Consumes compiler/security-analysis.json (COIP v1.0.0).",
   "type": "module",
   "bin": {
     "compact-analyzer": "./dist/cli.js"
@@ -19,7 +19,7 @@
     "compact",
     "blockchain",
     "zero-knowledge",
-    "constraint-analysis",
+    "circuit-size",
     "zkp"
   ],
   "author": "Midnight Network",
@@ -43,5 +43,8 @@
   "repository": {
     "type": "git",
     "directory": "tools/security-analyzer"
+  },
+  "optionalDependencies": {
+    "@midnight-ntwrk/zkir-v2": "^2.1.1"
   }
 }

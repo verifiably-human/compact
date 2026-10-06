@@ -8,8 +8,8 @@ Constraint analysis, security review, and value/privacy-at-risk assessment for M
 - 🎲 **Nonce Hygiene**. Inspects the witness JS/TS implementation and the contract source for nonce-reuse failures. Catches constant-return witnesses (`new Uint8Array(N)` etc.) and ledger Counter fields used in hashes without an increment.
 - 🔒 **Compiler-grounded security analysis**. Consumes `compiler/security-analysis.json` (COIP v1.0.0) for authoritative witness data-flow paths. Heuristic layer fills categories the compiler does not emit; heuristic findings overlapping a compiler finding are dropped.
 - 📄 **`security-profile.json` sibling artifact**. Versioned (`schema_version: 1.0.0`) machine-readable output containing the profile, value inventory, and nonce analysis. CI gates and dashboards consume this directly.
-- 📊 **Per-circuit constraint metrics** from real compactc output (constraint counts, K-values, proving-time estimates).
-- 🎨 **Visual diagrams**: dependency graphs, constraint flows, performance heatmaps.
+- 📊 **Per-circuit size (`k`)** from the same code the proof server uses: offline for ZKIR v2 via `@midnight-ntwrk/zkir-v2`, or via a proof server's `/k` for ZKIR v3 and later. Never estimated.
+- 🎨 **Visual diagrams**: dependency graphs, constraint flows, circuit-size heatmaps.
 - 🛡️ **Severity-sorted findings** with stable IDs for cross-run tracking. Fan-out deduped per (circuit, witness).
 - 🔇 **Baselines / suppression workflow**. `.security-analyzer-baseline.json` per repo lets the team ack reviewed findings; CI surfaces only net-new ones. Inline `@audit-ack: <id>` annotations work too. See [specs/SPEC-1-baselines.md](specs/SPEC-1-baselines.md).
 - 📤 **SARIF 2.1.0 output**. `--format sarif` emits a SARIF log for GitHub Code Scanning / GitLab SAST / Sonarqube. Findings appear inline on PRs. Acked findings emit `suppressions` so they show as "dismissed by tool". See [specs/SPEC-2-sarif.md](specs/SPEC-2-sarif.md).
@@ -129,8 +129,8 @@ compact-analyzer report contract.compact
 ```
 
 This generates a single HTML file containing:
-- Circuit analysis metrics (constraints, proving time, memory)
-- Performance insights and bottlenecks
+- Circuit sizes (`k`, row bound, and where each `k` came from)
+- Size insights (circuits at k ≥ 17, circuits whose `k` is unknown)
 - Optimization recommendations
 - All embedded visualizations (dependency graph, constraint flow, variable map, ledger interactions, performance heatmap)
 
@@ -310,10 +310,13 @@ Options:
                              output directory. The directory must contain
                              at least 'compiler/' (with contract-info.json
                              and optionally security-analysis.json). 'zkir/'
-                             enables constraint counts; if absent, the
-                             report skips those metrics. 'keys/' is
-                             unused by the analyzer.
+                             enables circuit sizes (k); if absent, the
+                             report skips them. 'keys/' is unused by the
+                             analyzer.
   --timeout <ms>             Compilation timeout in milliseconds (default: "120000")
+  --proof-server <url>       Proof server base URL used for the k of circuits
+                             with no local ZKIR package (e.g. ZKIR v3).
+                             Defaults to $MIDNIGHT_PROOF_SERVER.
   -h, --help                 Display help
 ```
 
@@ -336,7 +339,7 @@ What's required in the build directory:
 | `compiler/contract-info.json` | yes | Circuit and witness enumeration. |
 | `compiler/security-analysis.json` | strongly recommended | The compiler's witness data-flow report (COIP v1.0.0). When present, drives privacy findings; when absent, falls back to heuristics. |
 | `compiler/contract-manifest.json` | optional | Sizes and hashes of other artifacts. |
-| `zkir/<circuit>.zkir` | optional | Constraint counts and proving-time estimates. Without it, the constraint table is empty but security analysis still runs. |
+| `zkir/<circuit>.zkir` (and `.bzkir`) | optional | Circuit sizes (`k`). The `.bzkir` is sent to the proof server for ZKIR v3. Without them, the size table is empty but security analysis still runs. |
 | `keys/<circuit>.verifier` | not used | Verifier keys are unused by this tool. (They're used by the separate `deploy-check` tool.) |
 
 The user-supplied directory is never modified or deleted by the analyzer. The temp-directory cleanup that runs in the default mode does not apply.
@@ -732,7 +735,7 @@ Shows circuit dependencies and relationships between circuits and ledgers.
 
 ### 2. Constraint Flow
 Visualizes the flow of constraints within and between circuits.
-- **Features**: Sequential flow arrows, constraint count details, complexity-based coloring
+- **Features**: Sequential flow arrows, each circuit's `k`, size-based coloring
 - **Use Cases**: Debugging constraint execution, optimizing constraint order
 
 ### 3. Variable Map
@@ -745,10 +748,10 @@ Shows how circuits interact with ledger state.
 - **Features**: Ledger nodes with type information, read/write operations, circuit relationships
 - **Use Cases**: Understanding state management, identifying race conditions
 
-### 5. Performance Heatmap
-Identifies performance bottlenecks and optimization opportunities.
-- **Features**: Color-coded by proving time, memory estimates, constraint counts
-- **Use Cases**: Performance profiling, identifying bottlenecks, planning optimizations
+### 5. Circuit Size Heatmap
+Shows which circuits are expensive to prove.
+- **Features**: Circuits sorted and color-coded by `k` (≤ 10, 11–13, 14–16, ≥ 17). Proving time roughly doubles with each step of `k`; it depends on hardware and is not estimated.
+- **Use Cases**: Finding the circuits worth optimizing, and checking whether a change crossed a power-of-two boundary
 
 ## Visualization Themes
 
@@ -772,87 +775,83 @@ Identifies performance bottlenecks and optimization opportunities.
 📊 Compact Circuit Analysis
 ================================================================================
 
-Contract: token-transfer.compact
-Compiled: 2026-02-03T12:00:00.000Z
-Duration: 6389ms
-Compiler: compact 0.4.0
+Contract: deck52.compact
+Compiled: 2026-10-06T05:56:01.697Z
+Duration: 195ms
 
 Circuits (2):
 
-Circuit                  │  Constraints │ K-value │  Proof Size │ Proving Time
-─────────────────────────────────────────────────────────────────────────────
-transfer                 │      174,432 │      18 │      ~1.0 KB │       13.2s
-mint                     │       69,072 │      17 │      ~972 B  │        5.3s
-─────────────────────────────────────────────────────────────────────────────
+Circuit                   │        k │   Rows (≤ 2^k) │      k source
+─────────────────────────────────────────────────────────────────────
+reenc52                   │       12 │          4,096 │       zkir-v2
+reenc52Fresh              │       16 │         65,536 │       zkir-v2
+─────────────────────────────────────────────────────────────────────
 
-Total: 243,504 constraints across 2 circuits
+2 circuits; largest k=16
 ```
 
 ### Markdown Format
 
 ```markdown
-# Circuit Analysis: token-transfer.compact
-
-**Generated:** 2026-02-03T12:00:00.000Z
-**Compilation Time:** 6389ms
-**Compiler Version:** compact 0.4.0
+# Circuit Analysis: deck52.compact
 
 ## Summary
 
 - **Total Circuits:** 2
-- **Total Constraints:** 243,504
+- **Largest k:** 16
 
 ## Circuits
 
-| Circuit | Constraints | K-value | Proof Size | Proving Time (est) |
-|---------|-------------|---------|------------|-------------------|
-| transfer | 174,432 | 18 | ~1.0 KB | 13.2s |
-| mint | 69,072 | 17 | ~972 B | 5.3s |
+| Circuit | k | Rows (≤ 2^k) | k source |
+|---------|---|--------------|----------|
+| reenc52 | 12 | 4,096 | zkir-v2 |
+| reenc52Fresh | 16 | 65,536 | zkir-v2 |
 ```
 
 ### JSON Format
 
 ```json
 {
-  "contractFile": "token-transfer.compact",
+  "contractFile": "deck52.compact",
   "circuits": [
     {
-      "name": "transfer",
-      "constraints": 174432,
-      "kValue": 18,
-      "proofSize": 1024,
-      "zkirSize": 14536,
-      "provingTimeEstimate": 13.2,
-      "memoryEstimate": 4096
+      "name": "reenc52Fresh",
+      "zkirVersion": 2,
+      "kValue": 16,
+      "domainRows": 65536,
+      "kSource": "zkir-v2",
+      "zkirSize": 105477
     }
   ],
-  "totalConstraints": 243504,
-  "compilationTime": 6389,
-  "timestamp": "2026-02-03T12:00:00.000Z",
-  "compilerVersion": "0.4.0"
+  "maxK": 16,
+  "unknownKCount": 0
 }
 ```
 
+A circuit whose `k` could not be determined has `"kValue": null`, `"kSource": "unavailable"` and a `kNote` giving the reason.
+
 ## How It Works
 
-1. **Compilation**: Shells out to `compact compile` with `--skip-zk` flag
-2. **Parsing**: Reads `.zkir` files from compilation output
-3. **Analysis**: Calculates constraints using empirical formula: `constraints ≈ zkir_size × 12`
-4. **Metrics**: Estimates proving time, memory, proof size, and K-value
-5. **Reporting**: Generates formatted output
+1. **Compilation**: Shells out to `compact compile` with `--skip-zk`. Keys aren't needed, because `k` is read from the ZKIR.
+2. **Parsing**: Reads each circuit's `.zkir` file and its ZKIR major version from the header.
+3. **Sizing**: Takes `k` from the first source that supports that ZKIR version:
+   1. the local `@midnight-ntwrk/zkir-v<major>` package (`Zkir.getK()`, offline). Only v2 is published today; it is an optional dependency.
+   2. a proof server's `POST /k`, given the circuit's `.bzkir`. Set `--proof-server <url>` or `MIDNIGHT_PROOF_SERVER`. This covers ZKIR v3 (`--feature-zkir-v3`) and any later version the server supports.
+   3. otherwise `k` is reported as unknown, with the reason. It is never guessed.
+4. **Reporting**: Generates formatted output.
 
 ## Accuracy
 
-**100% accurate** - Uses the real Compact compiler output, not heuristics.
+`k` is exact: it comes from the same code the proof server uses, and the test fixtures check it against a proof server. A circuit occupies at most 2^k rows, so the row figure is an upper bound, not a count.
 
-The constraint counts come directly from the `.zkir` files generated by `compactc`. Proving time and memory estimates are based on empirical measurements and may vary based on hardware.
+Proving time, memory and proof size are not reported. They depend on hardware, and the figures earlier versions printed came from a heuristic (constraints ≈ `.zkir` size × 12) that was off by 8× to 512× on measured circuits and did not preserve their order. Proving time roughly doubles with each step of `k`; measure it on your target hardware.
 
 ## CI/CD Integration
 
 ### GitHub Actions
 
 ```yaml
-name: Analyze Constraints
+name: Analyze Circuits
 
 on: [push, pull_request]
 

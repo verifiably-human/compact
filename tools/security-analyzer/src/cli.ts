@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Compact Circuit Analyzer CLI
- * Production-grade constraint analysis for Midnight Compact smart contracts
+ * Circuit-size and security analysis for Midnight Compact smart contracts
  */
 
 import { Command } from 'commander';
@@ -29,7 +29,7 @@ const program = new Command();
 
 program
   .name('compact-analyzer')
-  .description('Production-grade constraint analysis for Midnight Compact smart contracts')
+  .description('Circuit-size and security analysis for Midnight Compact smart contracts')
   .version('1.0.0');
 
 program
@@ -41,6 +41,7 @@ program
   .option('-v, --verbose', 'Show detailed metrics', false)
   .option('--no-warnings', 'Suppress warnings for large circuits')
   .option('--timeout <ms>', 'Compilation timeout in milliseconds', '120000')
+  .option('--proof-server <url>', 'Proof server base URL used for the k of circuits with no local ZKIR package (e.g. ZKIR v3). Defaults to $MIDNIGHT_PROOF_SERVER.')
   .action(async (files: string[], options) => {
     try {
       // Validate inputs
@@ -77,6 +78,7 @@ program
       const results = await analyzeContracts(files, {
         verbose: false,
         timeout: parseInt(options.timeout, 10),
+        proofServer: options.proofServer,
       });
 
       // Generate reports
@@ -119,6 +121,7 @@ program
   .option('--no-legend', 'Exclude legend from diagrams')
   .option('--performance', 'Include performance metrics')
   .option('--timeout <ms>', 'Compilation timeout in milliseconds', '120000')
+  .option('--proof-server <url>', 'Proof server base URL used for the k of circuits with no local ZKIR package (e.g. ZKIR v3). Defaults to $MIDNIGHT_PROOF_SERVER.')
   .action(async (files: string[], options) => {
     try {
       for (const file of files) {
@@ -162,6 +165,7 @@ program
           const result = await analyzeContract(file, {
             verbose: false,
             timeout: parseInt(options.timeout, 10),
+            proofServer: options.proofServer,
           });
 
           const vizOptions: Partial<VisualizationOptions> = {
@@ -219,6 +223,7 @@ program
   .option('--update-baseline', 'Walk current findings and write entries to the baseline file. Reads ack reasons from stdin as a JSON object {findingId: reason}; pass --update-baseline-by <name> to record the author. Existing acks are preserved.', false)
   .option('--update-baseline-by <name>', 'Author identifier recorded on baseline entries written by --update-baseline.', 'unknown@local')
   .option('--timeout <ms>', 'Compilation timeout in milliseconds', '120000')
+  .option('--proof-server <url>', 'Proof server base URL used for the k of circuits with no local ZKIR package (e.g. ZKIR v3). Defaults to $MIDNIGHT_PROOF_SERVER.')
   .action(async (files: string[], options) => {
     try {
       // Validate every input up-front so a typo in arg N doesn't surface only
@@ -347,6 +352,7 @@ async function runUpdateBaseline(
   const result = await analyzeContract(file, {
     verbose: false,
     timeout: parseInt(options.timeout, 10),
+    proofServer: options.proofServer,
     witnessFile: options.witnessFile,
     fromBuildDir: options.fromBuildDir,
     // Don't suppress acks during update — we want to surface every
@@ -423,6 +429,7 @@ async function generateOneReport(
       const result = await analyzeContract(file, {
         verbose: false,
         timeout: parseInt(options.timeout, 10),
+        proofServer: options.proofServer,
         witnessFile: options.witnessFile,
         fromBuildDir: options.fromBuildDir,
         baselineFile: options.baselineFile,

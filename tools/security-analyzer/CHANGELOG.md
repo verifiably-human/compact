@@ -6,6 +6,16 @@ All notable changes to the `compact-security-analyzer` tool. Format follows
 
 ## [Unreleased]
 
+### Changed — circuit size is now `k` from the ZKIR, never estimated
+
+- **Removed the constraint estimate.** The analyzer used to estimate constraints as the `.zkir` file size × 12 and derive `k` from that. Against circuits measured on a 9.0.0-rc.7 proof server it was off by 3 to 9 steps of `k` (8× to 512×), and it did not preserve order: a 52-point re-randomization measured at k=12 was reported as k=21, above an 8-point circuit measured at k=14.
+- **`k` now comes from the code the proof server uses, chosen by ZKIR version.** The major version is read from each `.zkir` header. ZKIR v2 uses `Zkir.getK()` from `@midnight-ntwrk/zkir-v2`, offline (new optional dependency). Other versions, including v3 from `--feature-zkir-v3`, use a proof server's `POST /k` with the circuit's `.bzkir` when `--proof-server <url>` or `MIDNIGHT_PROOF_SERVER` is set. Otherwise `k` is reported as unknown with the reason, never guessed. A future ZKIR version works as soon as its package is installed or the proof server supports it.
+- **Removed proving time, memory and proof size figures.** All three were derived from the estimate and depend on hardware. Reports now show `k`, the row bound 2^k, and where `k` came from.
+- **Breaking: result schema.** `CircuitMetrics` drops `constraints`, `proofSize`, `provingTimeEstimate` and `memoryEstimate`, makes `kValue` nullable, and adds `zkirVersion`, `domainRows`, `kSource` and `kNote`. `AnalysisResult.totalConstraints` is replaced by `maxK` and `unknownKCount`.
+- **Size bands are now by `k`:** ≤ 10, 11–13, 14–16, ≥ 17. The large-circuit warning fires at k ≥ 17.
+- **Tests:** `src/parser.test.ts` covers v2 sizing against measured values, v3 via a stub proof server (checking the `.bzkir` bytes sent), the unknown-`k` path and proof-server errors. Fixtures and their sources are in `test-fixtures/zkir/`.
+
+
 ### Added — SARIF 2.1.0 output (see specs/SPEC-2-sarif.md)
 
 - **`--format sarif` flag on the `analyze` command.** Emits a SARIF

@@ -258,14 +258,25 @@ export class CircuitVisualizer {
   }
 
   /**
-   * Get complexity color based on constraint count
+   * Get size color from a circuit's k (proving-domain exponent).
+   * Bands: k <= 10, 11-13, 14-16, >= 17. Unknown k is drawn neutral.
    */
-  private getComplexityColor(constraints: number): string {
+  private getComplexityColor(kValue: number | null): string {
     const theme = this.getTheme();
-    if (constraints < 1000) return theme.lowComplexity;
-    if (constraints < 10000) return theme.mediumComplexity;
-    if (constraints < 100000) return theme.highComplexity;
+    if (kValue === null) return theme.background;
+    if (kValue <= 10) return theme.lowComplexity;
+    if (kValue <= 13) return theme.mediumComplexity;
+    if (kValue <= 16) return theme.highComplexity;
     return theme.veryHighComplexity;
+  }
+
+  /**
+   * Label fragment for a circuit's size
+   */
+  private sizeLabel(circuit: { kValue: number | null; domainRows: number | null }): string {
+    return circuit.kValue === null
+      ? 'k unknown'
+      : `k=${circuit.kValue} (≤ ${circuit.domainRows!.toLocaleString()} rows)`;
   }
 
   /**
@@ -285,7 +296,7 @@ export class CircuitVisualizer {
     dot += `  label="Circuit Dependency Graph\\n`;
     dot += `Contract: ${basename(this.result.contractFile)}\\n`;
     dot += `Circuits: ${this.result.circuits.length} | `;
-    dot += `Total Constraints: ${this.result.totalConstraints.toLocaleString()}";\n`;
+    dot += `Largest k: ${this.result.maxK ?? 'unknown'}";\n`;
     dot += `  labelloc="t";\n`;
     dot += `  fontsize=14;\n\n`;
 
@@ -294,9 +305,9 @@ export class CircuitVisualizer {
 
     // Add circuits
     for (const circuit of this.result.circuits) {
-      const color = this.getComplexityColor(circuit.constraints);
+      const color = this.getComplexityColor(circuit.kValue);
       const label = this.options.includeDetails
-        ? `${circuit.name}\\n${circuit.constraints.toLocaleString()} constraints\\nK=${circuit.kValue}`
+        ? `${circuit.name}\\n${this.sizeLabel(circuit)}`
         : circuit.name;
 
       dot += `  "${circuit.name}" [label="${label}", fillcolor="${color}", color="${theme.nodeBorder}"];\n`;
@@ -344,10 +355,10 @@ export class CircuitVisualizer {
     legend += `    color="${theme.nodeBorder}";\n`;
     legend += `    fillcolor="${theme.background}";\n\n`;
 
-    legend += `    legend_low [label="Low Complexity\\n(<1K constraints)", fillcolor="${theme.lowComplexity}", shape=box];\n`;
-    legend += `    legend_med [label="Medium Complexity\\n(1K-10K constraints)", fillcolor="${theme.mediumComplexity}", shape=box];\n`;
-    legend += `    legend_high [label="High Complexity\\n(10K-100K constraints)", fillcolor="${theme.highComplexity}", shape=box];\n`;
-    legend += `    legend_vhigh [label="Very High Complexity\\n(>100K constraints)", fillcolor="${theme.veryHighComplexity}", shape=box];\n`;
+    legend += `    legend_low [label="Small\\n(k ≤ 10)", fillcolor="${theme.lowComplexity}", shape=box];\n`;
+    legend += `    legend_med [label="Medium\\n(k 11-13)", fillcolor="${theme.mediumComplexity}", shape=box];\n`;
+    legend += `    legend_high [label="Large\\n(k 14-16)", fillcolor="${theme.highComplexity}", shape=box];\n`;
+    legend += `    legend_vhigh [label="Very large\\n(k ≥ 17)", fillcolor="${theme.veryHighComplexity}", shape=box];\n`;
 
     legend += `  }\n`;
     return legend;
@@ -459,11 +470,11 @@ export class CircuitVisualizer {
     dot += `  labelloc="t";\n`;
     dot += `  fontsize=14;\n\n`;
 
-    // Add circuits with constraint counts
+    // Add circuits with their sizes
     for (let i = 0; i < this.result.circuits.length; i++) {
       const circuit = this.result.circuits[i];
-      const color = this.getComplexityColor(circuit.constraints);
-      const label = `${circuit.name}\\n${circuit.constraints.toLocaleString()} constraints`;
+      const color = this.getComplexityColor(circuit.kValue);
+      const label = `${circuit.name}\\n${this.sizeLabel(circuit)}`;
 
       dot += `  "circuit_${i}" [label="${label}", fillcolor="${color}", color="${theme.nodeBorder}"];\n`;
 
@@ -580,25 +591,23 @@ export class CircuitVisualizer {
     dot += `  edge [fontname="Arial", fontsize=8, fontcolor="${textColor}"];\n\n`;
 
     // Add title
-    dot += `  label="Performance Heatmap\\n`;
+    dot += `  label="Circuit Size Heatmap\\n`;
     dot += `Contract: ${basename(this.result.contractFile)}\\n`;
-    dot += `Total Proving Time: ${this.result.circuits.reduce((sum, c) => sum + c.provingTimeEstimate, 0).toFixed(1)}s";\n`;
+    dot += `Largest k: ${this.result.maxK ?? 'unknown'} (proving time roughly doubles per step of k)";\n`;
     dot += `  labelloc="t";\n`;
     dot += `  fontsize=14;\n\n`;
 
-    // Sort circuits by proving time
+    // Sort circuits by size, largest first; unknown k last
     const sortedCircuits = [...this.result.circuits].sort((a, b) =>
-      b.provingTimeEstimate - a.provingTimeEstimate
+      (b.kValue ?? -1) - (a.kValue ?? -1)
     );
 
     // Add circuits with performance info
     for (const circuit of sortedCircuits) {
-      const color = this.getComplexityColor(circuit.constraints);
+      const color = this.getComplexityColor(circuit.kValue);
       const label = this.options.includeDetails
-        ? `${circuit.name}\\n${circuit.constraints.toLocaleString()} constraints\\n` +
-          `Proving Time: ${circuit.provingTimeEstimate.toFixed(1)}s\\n` +
-          `Memory: ${circuit.memoryEstimate.toFixed(0)}MB`
-        : `${circuit.name}\\n${circuit.provingTimeEstimate.toFixed(1)}s`;
+        ? `${circuit.name}\\n${this.sizeLabel(circuit)}\\nk source: ${circuit.kSource}`
+        : `${circuit.name}\\n${circuit.kValue === null ? 'k unknown' : `k=${circuit.kValue}`}`;
 
       dot += `  "${circuit.name}" [label="${label}", fillcolor="${color}", color="${theme.nodeBorder}"];\n`;
     }
@@ -617,15 +626,15 @@ export class CircuitVisualizer {
    */
   private generatePerformanceLegend(theme: Theme): string {
     let legend = `\n  subgraph cluster_legend {\n`;
-    legend += `    label="Performance Impact";\n`;
+    legend += `    label="Circuit Size";\n`;
     legend += `    style=filled;\n`;
     legend += `    color="${theme.nodeBorder}";\n`;
     legend += `    fillcolor="${theme.background}";\n\n`;
 
-    legend += `    perf_low [label="Fast\\n(<5s)", fillcolor="${theme.lowComplexity}", shape=box];\n`;
-    legend += `    perf_med [label="Moderate\\n(5-30s)", fillcolor="${theme.mediumComplexity}", shape=box];\n`;
-    legend += `    perf_high [label="Slow\\n(30-120s)", fillcolor="${theme.highComplexity}", shape=box];\n`;
-    legend += `    perf_vhigh [label="Very Slow\\n(>120s)", fillcolor="${theme.veryHighComplexity}", shape=box];\n`;
+    legend += `    perf_low [label="Small\\n(k ≤ 10)", fillcolor="${theme.lowComplexity}", shape=box];\n`;
+    legend += `    perf_med [label="Medium\\n(k 11-13)", fillcolor="${theme.mediumComplexity}", shape=box];\n`;
+    legend += `    perf_high [label="Large\\n(k 14-16)", fillcolor="${theme.highComplexity}", shape=box];\n`;
+    legend += `    perf_vhigh [label="Very large\\n(k ≥ 17)", fillcolor="${theme.veryHighComplexity}", shape=box];\n`;
 
     legend += `  }\n`;
     return legend;
@@ -800,19 +809,19 @@ export class CircuitVisualizer {
       <div class="legend">
         <div class="legend-item">
           <span class="legend-color" style="background-color: ${colors.low};"></span>
-          <span class="legend-label">Low Complexity (&lt;1K constraints)</span>
+          <span class="legend-label">Small (k ≤ 10)</span>
         </div>
         <div class="legend-item">
           <span class="legend-color" style="background-color: ${colors.medium};"></span>
-          <span class="legend-label">Medium Complexity (1K-10K constraints)</span>
+          <span class="legend-label">Medium (k 11-13)</span>
         </div>
         <div class="legend-item">
           <span class="legend-color" style="background-color: ${colors.high};"></span>
-          <span class="legend-label">High Complexity (10K-100K constraints)</span>
+          <span class="legend-label">Large (k 14-16)</span>
         </div>
         <div class="legend-item">
           <span class="legend-color" style="background-color: ${colors.veryHigh};"></span>
-          <span class="legend-label">Very High Complexity (&gt;100K constraints)</span>
+          <span class="legend-label">Very large (k ≥ 17)</span>
         </div>
       </div>
     `;

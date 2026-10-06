@@ -290,8 +290,8 @@ export class ApiDocGenerator {
       <h2>Overview</h2>
       <div class="overview-grid">
         <div class="overview-card">
-          <div class="overview-label">Total Constraints</div>
-          <div class="overview-value">${this.result.totalConstraints.toLocaleString()}</div>
+          <div class="overview-label">Largest k</div>
+          <div class="overview-value">${this.result.maxK ?? 'unknown'}</div>
         </div>
         <div class="overview-card">
           <div class="overview-label">Exported Circuits</div>

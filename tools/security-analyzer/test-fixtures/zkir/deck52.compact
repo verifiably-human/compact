@@ -1,0 +1,25 @@
+pragma language_version >= 0.22;
+import CompactStandardLibrary;
+
+witness r(): JubjubScalar;
+witness perm(): Vector<52, Uint<6>>;
+export ledger c1s: Vector<52, JubjubPoint>;
+export ledger c2s: Vector<52, JubjubPoint>;
+export ledger pk: JubjubPoint;
+
+// Half-deck (52 cards) ElGamal re-encryption, no permutation: floor cost
+export circuit reenc52(): [] {
+  const k = r();
+  const g = ecMulGenerator(k);
+  const h = ecMul(pk, k);
+  c1s = disclose(map((a) => ecAdd(a, g), c1s));
+  c2s = disclose(map((a) => ecAdd(a, h), c2s));
+}
+
+// Per-card fresh randomness (required for a real shuffle): 52 fixed + 52 variable muls
+witness rs(): Vector<52, JubjubScalar>;
+export circuit reenc52Fresh(): [] {
+  const ks = rs();
+  c1s = disclose(map((a, k) => ecAdd(a, ecMulGenerator(k)), c1s, ks));
+  c2s = disclose(map((a, k) => ecAdd(a, ecMul(pk, k)), c2s, ks));
+}

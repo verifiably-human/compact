@@ -265,6 +265,7 @@ export class ComprehensiveReportGenerator {
       }
 
       .complexity-low { color: #28a745; font-weight: 600; }
+      .complexity-unknown { color: #6c757d; font-weight: 600; }
       .complexity-medium { color: #ffc107; font-weight: 600; }
       .complexity-high { color: #fd7e14; font-weight: 600; }
       .complexity-very-high { color: #dc3545; font-weight: 600; }
@@ -1246,31 +1247,18 @@ export class ComprehensiveReportGenerator {
    * Generate summary section
    */
   private generateSummary(): string {
-    // Proving-time metrics. The previous "Total proving time" was a
-    // raw sum of every circuit's estimate, which only makes sense if
-    // every circuit were proved once back-to-back — not a real
-    // workload. Real users invoke ONE circuit per transaction. The
-    // top-line metric is now the worst-case single-call proving time
-    // (max), with the median alongside for typical-case framing. The
-    // legacy sum is preserved lower as "if every circuit were proved
-    // once," explicitly labelled as not-a-real-workload.
-    const times = this.result.circuits.map(c => c.provingTimeEstimate);
-    const memories = this.result.circuits.map(c => c.memoryEstimate);
-    const sortedTimes = [...times].sort((a, b) => a - b);
-    const worstCaseTime = times.length ? Math.max(...times) : 0;
-    const medianTime = sortedTimes.length
-      ? sortedTimes[Math.floor(sortedTimes.length / 2)]
-      : 0;
-    const slowestCircuit = this.result.circuits.find(c => c.provingTimeEstimate === worstCaseTime);
-    const cumulativeTime = times.reduce((a, b) => a + b, 0);
-
-    const peakMemory = memories.length ? Math.max(...memories) : 0;
-    const peakMemCircuit = this.result.circuits.find(c => c.memoryEstimate === peakMemory);
-    const cumulativeMemory = memories.reduce((a, b) => a + b, 0);
-
-    const avgKValue = this.result.circuits.length > 0
-      ? (this.result.circuits.reduce((sum, c) => sum + c.kValue, 0) / this.result.circuits.length).toFixed(1)
-      : '0';
+    // Circuit size is reported as k, the proving-domain exponent, taken
+    // from the ZKIR itself or the proof server (see parser.ts). Proving
+    // time and memory are hardware-dependent and are not estimated; the
+    // previous figures came from a file-size heuristic that was off by
+    // 8x-512x on measured circuits.
+    const known = this.result.circuits.filter(c => c.kValue !== null);
+    const largest = known.reduce<typeof known[number] | undefined>(
+      (max, c) => (max === undefined || c.kValue! > max.kValue! ? c : max),
+      undefined
+    );
+    const sortedK = known.map(c => c.kValue!).sort((x, y) => x - y);
+    const medianK = sortedK.length ? sortedK[Math.floor(sortedK.length / 2)] : null;
 
     return `
     <section>
@@ -1281,44 +1269,23 @@ export class ComprehensiveReportGenerator {
           <div class="card-value">${this.result.circuits.length}</div>
           <div class="card-subtitle">Exported circuits</div>
         </div>
-        <div class="card">
-          <div class="card-title">Total Constraints</div>
-          <div class="card-value">${this.result.totalConstraints.toLocaleString()}</div>
-          <div class="card-subtitle">Sum across circuits (not per-tx)</div>
-        </div>
         <div class="card highlight">
-          <div class="card-title">Worst-case Proving Time</div>
-          <div class="card-value">${worstCaseTime.toFixed(1)}s</div>
-          <div class="card-subtitle">Slowest single call${peakMemCircuit ? '' : ''}${slowestCircuit ? ` (${this.escapeHtml(slowestCircuit.name)})` : ''}</div>
+          <div class="card-title">Largest k</div>
+          <div class="card-value">${largest ? largest.kValue : 'unknown'}</div>
+          <div class="card-subtitle">${largest ? `${this.escapeHtml(largest.name)} (≤ ${largest.domainRows!.toLocaleString()} rows)` : 'No circuit size available'}</div>
         </div>
         <div class="card">
-          <div class="card-title">Median Proving Time</div>
-          <div class="card-value">${medianTime.toFixed(1)}s</div>
+          <div class="card-title">Median k</div>
+          <div class="card-value">${medianK ?? 'unknown'}</div>
           <div class="card-subtitle">Typical single call</div>
         </div>
         <div class="card">
-          <div class="card-title">Peak Memory</div>
-          <div class="card-value">${peakMemory.toFixed(0)} MB</div>
-          <div class="card-subtitle">Slowest single call${peakMemCircuit ? ` (${this.escapeHtml(peakMemCircuit.name)})` : ''}</div>
-        </div>
-        <div class="card">
-          <div class="card-title">Average K-Value</div>
-          <div class="card-value">${avgKValue}</div>
-          <div class="card-subtitle">Plonk domain size</div>
+          <div class="card-title">Unknown k</div>
+          <div class="card-value">${this.result.unknownKCount}</div>
+          <div class="card-subtitle">${this.result.unknownKCount > 0 ? 'Configure --proof-server for these' : 'All circuits sized'}</div>
         </div>
       </div>
-      <details class="cumulative-metrics">
-        <summary>Cumulative metrics (not a real workload)</summary>
-        <p>The numbers below assume every circuit is proved once in sequence on a single machine.
-        Real users invoke one circuit per transaction; these are useful only for full-test-suite
-        timing budgets, deploy-time stress estimation, or batch-proving infrastructure planning.</p>
-        <ul>
-          <li><strong>If every circuit were proved once (sequential):</strong> ${cumulativeTime.toFixed(1)}s</li>
-          <li><strong>Sum of per-circuit memory estimates:</strong> ${cumulativeMemory.toFixed(0)} MB
-            <em>(parallel proof workers would each need their own peak memory; this number is not the
-            host's required RAM for normal operation)</em></li>
-        </ul>
-      </details>
+      <p class="note">Proving time roughly doubles with each step of k. It depends on hardware, so measure it on your target machine; it is not estimated here.</p>
     </section>
     `;
   }
@@ -1467,16 +1434,14 @@ export class ComprehensiveReportGenerator {
     // they are safe to interpolate as a class name.
     let rows = '';
     for (const circuit of this.result.circuits) {
-      const complexity = this.getComplexityClass(circuit.constraints);
+      const complexity = this.getComplexityClass(circuit.kValue);
       rows += `
         <tr>
           <td><strong>${this.escapeHtml(circuit.name)}</strong></td>
-          <td>${circuit.constraints.toLocaleString()}</td>
-          <td>${circuit.kValue}</td>
-          <td>${(circuit.proofSize / 1024).toFixed(1)} KB</td>
-          <td>${circuit.provingTimeEstimate.toFixed(1)}s</td>
-          <td>${circuit.memoryEstimate.toFixed(0)} MB</td>
-          <td><span class="${complexity}">${this.escapeHtml(this.getComplexityLabel(circuit.constraints))}</span></td>
+          <td>${circuit.kValue ?? 'unknown'}</td>
+          <td>${circuit.domainRows === null ? 'unknown' : circuit.domainRows.toLocaleString()}</td>
+          <td>${this.escapeHtml(circuit.kSource)}${circuit.kNote ? `<br><small>${this.escapeHtml(circuit.kNote)}</small>` : ''}</td>
+          <td><span class="${complexity}">${this.escapeHtml(this.getComplexityLabel(circuit.kValue))}</span></td>
         </tr>
       `;
     }
@@ -1488,12 +1453,10 @@ export class ComprehensiveReportGenerator {
         <thead>
           <tr>
             <th>Circuit</th>
-            <th>Constraints</th>
-            <th>K-Value</th>
-            <th>Proof Size</th>
-            <th>Proving Time</th>
-            <th>Memory</th>
-            <th>Complexity</th>
+            <th>k</th>
+            <th>Rows (≤ 2^k)</th>
+            <th>k source</th>
+            <th>Size</th>
           </tr>
         </thead>
         <tbody>
@@ -1510,34 +1473,18 @@ export class ComprehensiveReportGenerator {
   private generatePerformanceInsights(): string {
     const insights: string[] = [];
 
-    // High constraint circuits
-    const highConstraintCircuits = this.result.circuits.filter(c => c.constraints > 100000);
-    if (highConstraintCircuits.length > 0) {
-      insights.push(`${highConstraintCircuits.length} circuit(s) with very high constraint count (>100K): ${highConstraintCircuits.map(c => c.name).join(', ')}`);
+    const veryLarge = this.result.circuits.filter(c => c.kValue !== null && c.kValue >= 17);
+    if (veryLarge.length > 0) {
+      insights.push(`${veryLarge.length} circuit(s) with k ≥ 17, which typically take seconds or more to prove: ${veryLarge.map(c => `${c.name} (k=${c.kValue})`).join(', ')}`);
     }
 
-    // Long proving times
-    const slowCircuits = this.result.circuits.filter(c => c.provingTimeEstimate > 30);
-    if (slowCircuits.length > 0) {
-      insights.push(`${slowCircuits.length} circuit(s) with slow proving time (>30s): ${slowCircuits.map(c => `${c.name} (${c.provingTimeEstimate.toFixed(1)}s)`).join(', ')}`);
+    const unknown = this.result.circuits.filter(c => c.kValue === null);
+    if (unknown.length > 0) {
+      insights.push(`${unknown.length} circuit(s) with unknown k: ${unknown.map(c => c.name).join(', ')}. ${unknown[0].kNote ?? ''}`.trim());
     }
 
-    // High memory circuits
-    const memoryIntensiveCircuits = this.result.circuits.filter(c => c.memoryEstimate > 1000);
-    if (memoryIntensiveCircuits.length > 0) {
-      insights.push(`${memoryIntensiveCircuits.length} circuit(s) require significant memory (>1GB): ${memoryIntensiveCircuits.map(c => c.name).join(', ')}`);
-    }
-
-    // Large proof sizes
-    const largeProofCircuits = this.result.circuits.filter(c => c.proofSize > 2048);
-    if (largeProofCircuits.length > 0) {
-      insights.push(`${largeProofCircuits.length} circuit(s) generate large proofs (>2KB): ${largeProofCircuits.map(c => c.name).join(', ')}`);
-    }
-
-    // Good performance
     if (insights.length === 0) {
-      insights.push('All circuits show good performance characteristics');
-      insights.push(`Average proving time: ${(this.result.circuits.reduce((sum, c) => sum + c.provingTimeEstimate, 0) / this.result.circuits.length).toFixed(1)}s`);
+      insights.push(`All circuits have k ≤ 16; largest k is ${this.result.maxK ?? 'unknown'}`);
     }
 
     return `
@@ -1557,15 +1504,9 @@ export class ComprehensiveReportGenerator {
     const recommendations: string[] = [];
 
     // Constraint optimization
-    const highConstraintCircuits = this.result.circuits.filter(c => c.constraints > 50000);
-    if (highConstraintCircuits.length > 0) {
-      recommendations.push(`Consider breaking down high-complexity circuits (${highConstraintCircuits.map(c => c.name).join(', ')}) into smaller sub-circuits for better performance and maintainability`);
-    }
-
-    // Memory optimization
-    const memoryIntensiveCircuits = this.result.circuits.filter(c => c.memoryEstimate > 1000);
-    if (memoryIntensiveCircuits.length > 0) {
-      recommendations.push(`Memory-intensive circuits (${memoryIntensiveCircuits.map(c => c.name).join(', ')}) may require optimization or hardware upgrades for proving`);
+    const largeCircuits = this.result.circuits.filter(c => c.kValue !== null && c.kValue >= 16);
+    if (largeCircuits.length > 0) {
+      recommendations.push(`Consider splitting large circuits (${largeCircuits.map(c => `${c.name}, k=${c.kValue}`).join('; ')}). A reduction only shortens proving once the circuit drops below the next power of two`);
     }
 
     // Parallelization
@@ -1574,7 +1515,7 @@ export class ComprehensiveReportGenerator {
     }
 
     // Testing
-    const criticalCircuits = this.result.circuits.filter(c => c.constraints > 100000);
+    const criticalCircuits = this.result.circuits.filter(c => c.kValue !== null && c.kValue >= 17);
     if (criticalCircuits.length > 0) {
       recommendations.push(`Ensure thorough testing of high-complexity circuits (${criticalCircuits.map(c => c.name).join(', ')}) before deployment`);
     }
@@ -1682,20 +1623,22 @@ export class ComprehensiveReportGenerator {
   /**
    * Get complexity CSS class
    */
-  private getComplexityClass(constraints: number): string {
-    if (constraints < 1000) return 'complexity-low';
-    if (constraints < 10000) return 'complexity-medium';
-    if (constraints < 100000) return 'complexity-high';
+  private getComplexityClass(kValue: number | null): string {
+    if (kValue === null) return 'complexity-unknown';
+    if (kValue <= 10) return 'complexity-low';
+    if (kValue <= 13) return 'complexity-medium';
+    if (kValue <= 16) return 'complexity-high';
     return 'complexity-very-high';
   }
 
   /**
    * Get complexity label
    */
-  private getComplexityLabel(constraints: number): string {
-    if (constraints < 1000) return 'Low';
-    if (constraints < 10000) return 'Medium';
-    if (constraints < 100000) return 'High';
-    return 'Very High';
+  private getComplexityLabel(kValue: number | null): string {
+    if (kValue === null) return 'Unknown';
+    if (kValue <= 10) return 'Small';
+    if (kValue <= 13) return 'Medium';
+    if (kValue <= 16) return 'Large';
+    return 'Very large';
   }
 }

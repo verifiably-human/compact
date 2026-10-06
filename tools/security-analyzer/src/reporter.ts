@@ -1,12 +1,12 @@
 /**
  * Report Generator
- * Generates constraint analysis reports in multiple formats
+ * Generates circuit-size and security analysis reports in multiple formats
  */
 
 import { writeFileSync } from 'fs';
 import { basename, dirname } from 'path';
 import type { AnalysisResult, CircuitMetrics, ReportOptions } from './types.js';
-import { getWarningMessage } from './parser.js';
+import { formatK, getWarningMessage } from './parser.js';
 import { buildSarifLog, serialiseSarifLog } from './sarif.js';
 
 /**
@@ -19,12 +19,19 @@ function formatBytes(bytes: number): string {
 }
 
 /**
- * Format time as human-readable duration
+ * Format a circuit's row bound (2^k)
  */
-function formatTime(seconds: number): string {
-  if (seconds < 1) return `${Math.round(seconds * 1000)}ms`;
-  if (seconds < 60) return `${seconds.toFixed(1)}s`;
-  return `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`;
+function formatRows(circuit: CircuitMetrics): string {
+  return circuit.domainRows === null ? 'unknown' : circuit.domainRows.toLocaleString();
+}
+
+/**
+ * One-line size summary across all circuits
+ */
+function summaryLine(result: AnalysisResult): string {
+  const largest = result.maxK === null ? 'unknown' : `k=${result.maxK}`;
+  const unknown = result.unknownKCount > 0 ? `; k unknown for ${result.unknownKCount}` : '';
+  return `${result.circuits.length} circuits; largest ${largest}${unknown}`;
 }
 
 /**
@@ -60,10 +67,9 @@ export function generateConsoleReport(result: AnalysisResult, options: ReportOpt
   // Table header
   const header = [
     'Circuit'.padEnd(25),
-    'Constraints'.padStart(12),
-    'K-value'.padStart(8),
-    'Proof Size'.padStart(12),
-    'Proving Time'.padStart(13),
+    'k'.padStart(8),
+    'Rows (≤ 2^k)'.padStart(14),
+    'k source'.padStart(13),
   ].join(' │ ');
 
   lines.push(header);
@@ -73,10 +79,9 @@ export function generateConsoleReport(result: AnalysisResult, options: ReportOpt
   for (const circuit of result.circuits) {
     const row = [
       circuit.name.padEnd(25),
-      circuit.constraints.toLocaleString().padStart(12),
-      circuit.kValue.toString().padStart(8),
-      formatBytes(circuit.proofSize).padStart(12),
-      formatTime(circuit.provingTimeEstimate).padStart(13),
+      formatK(circuit).padStart(8),
+      formatRows(circuit).padStart(14),
+      circuit.kSource.padStart(13),
     ].join(' │ ');
 
     lines.push(row);
@@ -86,7 +91,10 @@ export function generateConsoleReport(result: AnalysisResult, options: ReportOpt
 
   // Summary
   lines.push('');
-  lines.push(`Total: ${result.totalConstraints.toLocaleString()} constraints across ${result.circuits.length} circuits`);
+  lines.push(summaryLine(result));
+  for (const circuit of result.circuits.filter((c) => c.kNote)) {
+    lines.push(`  ${circuit.name}: k unknown (${circuit.kNote})`);
+  }
 
   // Warnings
   if (options.warnings) {
@@ -110,12 +118,11 @@ export function generateConsoleReport(result: AnalysisResult, options: ReportOpt
 
     for (const circuit of result.circuits) {
       lines.push(`${circuit.name}:`);
-      lines.push(`  Constraints: ${circuit.constraints.toLocaleString()}`);
-      lines.push(`  K-value: ${circuit.kValue}`);
+      lines.push(`  k: ${formatK(circuit)}${circuit.kNote ? ` (${circuit.kNote})` : ''}`);
+      lines.push(`  Rows: ${formatRows(circuit)}`);
+      lines.push(`  k source: ${circuit.kSource}`);
+      lines.push(`  ZKIR version: ${circuit.zkirVersion ?? 'unknown'}`);
       lines.push(`  ZKIR Size: ${formatBytes(circuit.zkirSize)}`);
-      lines.push(`  Proof Size: ${formatBytes(circuit.proofSize)}`);
-      lines.push(`  Proving Time: ${formatTime(circuit.provingTimeEstimate)} (estimated)`);
-      lines.push(`  Memory: ~${Math.round(circuit.memoryEstimate / 1024)}GB (estimated)`);
       lines.push('');
     }
   }
@@ -145,7 +152,10 @@ export function generateMarkdownReport(result: AnalysisResult, options: ReportOp
   lines.push('## Summary');
   lines.push('');
   lines.push(`- **Total Circuits:** ${result.circuits.length}`);
-  lines.push(`- **Total Constraints:** ${result.totalConstraints.toLocaleString()}`);
+  lines.push(`- **Largest k:** ${result.maxK ?? 'unknown'}`);
+  if (result.unknownKCount > 0) {
+    lines.push(`- **Circuits with unknown k:** ${result.unknownKCount}`);
+  }
   lines.push('');
 
   // Circuits table
@@ -156,12 +166,12 @@ export function generateMarkdownReport(result: AnalysisResult, options: ReportOp
 
   lines.push('## Circuits');
   lines.push('');
-  lines.push('| Circuit | Constraints | K-value | Proof Size | Proving Time (est) |');
-  lines.push('|---------|-------------|---------|------------|-------------------|');
+  lines.push('| Circuit | k | Rows (≤ 2^k) | k source |');
+  lines.push('|---------|---|--------------|----------|');
 
   for (const circuit of result.circuits) {
     lines.push(
-      `| ${circuit.name} | ${circuit.constraints.toLocaleString()} | ${circuit.kValue} | ${formatBytes(circuit.proofSize)} | ${formatTime(circuit.provingTimeEstimate)} |`
+      `| ${circuit.name} | ${formatK(circuit)} | ${formatRows(circuit)} | ${circuit.kSource}${circuit.kNote ? ` (${circuit.kNote})` : ''} |`
     );
   }
 
@@ -169,7 +179,7 @@ export function generateMarkdownReport(result: AnalysisResult, options: ReportOp
 
   // Warnings
   if (options.warnings) {
-    const largeCircuits = result.circuits.filter((c) => c.constraints > 100000);
+    const largeCircuits = result.circuits.filter((c) => getWarningMessage(c) !== null);
 
     if (largeCircuits.length > 0) {
       lines.push('## Warnings');
@@ -180,12 +190,12 @@ export function generateMarkdownReport(result: AnalysisResult, options: ReportOp
         if (warning) {
           lines.push(`### ${circuit.name}`);
           lines.push('');
-          lines.push(warning.replace(/⚠️\s+Warning:\s+[^(]+\(/g, '('));
+          lines.push(warning.replace(/^⚠️\s+Warning:\s+/, ''));
           lines.push('');
           lines.push('**Recommendations:**');
           lines.push('- Consider breaking into smaller circuits');
-          lines.push('- Optimize expensive operations (hashing, Merkle proofs)');
-          lines.push('- Review circuit logic for unnecessary constraints');
+          lines.push('- Optimize expensive operations (elliptic-curve multiplication, hashing, Merkle proofs)');
+          lines.push('- A reduction only helps once the circuit drops below the next power of two');
           lines.push('');
         }
       }
@@ -202,12 +212,11 @@ export function generateMarkdownReport(result: AnalysisResult, options: ReportOp
       lines.push('');
       lines.push('| Metric | Value |');
       lines.push('|--------|-------|');
-      lines.push(`| Constraints | ${circuit.constraints.toLocaleString()} |`);
-      lines.push(`| K-value | ${circuit.kValue} |`);
+      lines.push(`| k | ${formatK(circuit)} |`);
+      lines.push(`| Rows (≤ 2^k) | ${formatRows(circuit)} |`);
+      lines.push(`| k source | ${circuit.kSource}${circuit.kNote ? ` (${circuit.kNote})` : ''} |`);
+      lines.push(`| ZKIR version | ${circuit.zkirVersion ?? 'unknown'} |`);
       lines.push(`| ZKIR File Size | ${formatBytes(circuit.zkirSize)} |`);
-      lines.push(`| Proof Size | ${formatBytes(circuit.proofSize)} |`);
-      lines.push(`| Proving Time (estimated) | ${formatTime(circuit.provingTimeEstimate)} |`);
-      lines.push(`| Memory (estimated) | ~${Math.round(circuit.memoryEstimate / 1024)}GB |`);
       lines.push('');
     }
   }

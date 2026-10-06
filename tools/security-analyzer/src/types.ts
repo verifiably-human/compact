@@ -2,14 +2,16 @@
  * Types for Compact Circuit Analyzer CLI
  */
 
+export type KSource = `zkir-v${number}` | 'proof-server' | 'unavailable';
+
 export interface CircuitMetrics {
   name: string;
-  constraints: number;
-  kValue: number;
-  proofSize: number; // bytes
+  zkirVersion: number | null; // major version from the .zkir header
+  kValue: number | null; // proving-domain size exponent; null when it could not be determined
+  domainRows: number | null; // 2^k, an upper bound on the circuit's rows
+  kSource: KSource; // where kValue came from
+  kNote?: string; // why kValue is null
   zkirSize: number; // bytes
-  provingTimeEstimate: number; // seconds
-  memoryEstimate: number; // MB
   dependencies?: string[]; // Names of circuits this circuit calls
 }
 
@@ -49,7 +51,8 @@ export interface DeadCodeFindings {
 export interface AnalysisResult {
   contractFile: string;
   circuits: CircuitMetrics[];
-  totalConstraints: number;
+  maxK: number | null; // largest k across circuits; null if none is known
+  unknownKCount: number; // circuits whose k could not be determined
   compilationTime: number; // ms
   timestamp: string;
   compilerVersion?: string;
@@ -380,6 +383,10 @@ export interface CompilerOptions {
   // pipelines that already compiled separately, or for re-running the
   // analyzer without paying the compile cost again.
   fromBuildDir?: string;
+  // Optional proof server base URL. Used for the `k` of any circuit whose
+  // ZKIR version has no local package (today, everything except v2).
+  // Falls back to the MIDNIGHT_PROOF_SERVER environment variable.
+  proofServer?: string;
   // Baseline options (see specs/SPEC-1-baselines.md).
   // baselineFile: explicit path to a .security-analyzer-baseline.json.
   //   When unset, the analyzer looks next to the contract file (sibling
@@ -394,4 +401,5 @@ export interface ZkirFileInfo {
   name: string;
   size: number;
   path: string;
+  binaryPath?: string; // matching .bzkir, used for the proof server's /k
 }

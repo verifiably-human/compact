@@ -19,7 +19,8 @@ const baseSec = (over: Partial<SecurityFinding> = {}): SecurityFinding => ({
 const baseResult = (sec: SecurityFinding[] = []): AnalysisResult => ({
   contractFile: '/abs/path/to/MyContract.compact',
   circuits: [],
-  totalConstraints: 0,
+  maxK: null,
+  unknownKCount: 0,
   compilationTime: 0,
   timestamp: '2026-06-13T12:00:00Z',
   security: {

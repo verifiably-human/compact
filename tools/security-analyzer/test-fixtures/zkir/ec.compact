@@ -1,0 +1,28 @@
+pragma language_version >= 0.22;
+import CompactStandardLibrary;
+
+witness r(): JubjubScalar;
+export ledger out: JubjubPoint;
+export ledger outv: Vector<8, JubjubPoint>;
+
+export circuit baseline(p: JubjubPoint): [] {
+  out = disclose(p);
+}
+
+export circuit oneFixed(): [] {
+  out = disclose(ecMulGenerator(r()));
+}
+
+export circuit oneVar(p: JubjubPoint): [] {
+  out = disclose(ecMul(p, r()));
+}
+
+export circuit reencrypt(c1: JubjubPoint, c2: JubjubPoint, pk: JubjubPoint): [] {
+  const k = r();
+  out = disclose(ecAdd(ecAdd(c1, ecMulGenerator(k)), ecAdd(c2, ecMul(pk, k))));
+}
+
+export circuit reencrypt8(c1: Vector<8, JubjubPoint>, pk: JubjubPoint): [] {
+  const k = r();
+  outv = disclose(map((a) => ecAdd(ecAdd(a, ecMulGenerator(k)), ecMul(pk, k)), c1));
+}

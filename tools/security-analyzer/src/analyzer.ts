@@ -67,15 +67,15 @@ export async function analyzeContract(
   }
 
   try {
-    let circuits: ReturnType<typeof parseCircuits>;
+    let circuits: Awaited<ReturnType<typeof parseCircuits>>;
 
     if (useExistingBuild) {
       // Try to parse zkir artifacts; tolerate absence (a CI that ran
       // only the compiler without the zkir step still produces useful
-      // analysis, just without constraint counts).
+      // analysis, just without circuit sizes).
       const zkirDir = getZkirDirPath(workDir);
       try {
-        circuits = parseCircuits(zkirDir);
+        circuits = await parseCircuits(zkirDir, { proofServer: options.proofServer });
         zkirAvailable = circuits.length > 0;
       } catch {
         circuits = [];
@@ -85,13 +85,13 @@ export async function analyzeContract(
       // Compile the contract
       const compileResult = await compileContract(absolutePath, workDir, {
         ...options,
-        skipZk: true, // Always skip ZK generation for constraint analysis
+        skipZk: true, // Keys aren't needed: k is read from the ZKIR
       });
       compileDurationMs = compileResult.duration;
 
       // Parse ZKIR files
       const zkirDir = getZkirDirPath(workDir);
-      circuits = parseCircuits(zkirDir);
+      circuits = await parseCircuits(zkirDir, { proofServer: options.proofServer });
       zkirAvailable = circuits.length > 0;
     }
 
@@ -99,7 +99,9 @@ export async function analyzeContract(
     const compilerVersion = await getCompilerVersion();
 
     // Calculate totals
-    const totalConstraints = circuits.reduce((sum, c) => sum + c.constraints, 0);
+    const knownK = circuits.map((c) => c.kValue).filter((k): k is number => k !== null);
+    const maxK = knownK.length > 0 ? Math.max(...knownK) : null;
+    const unknownKCount = circuits.length - knownK.length;
 
     // Run security analysis. The compiler emits `compiler/security-analysis.json`
     // (COIP v1.0.0) on every successful compile; presence of the file is the
@@ -322,7 +324,8 @@ export async function analyzeContract(
     const result: AnalysisResult = {
       contractFile: absolutePath, // Store full path so visualizer can read source
       circuits,
-      totalConstraints,
+      maxK,
+      unknownKCount,
       compilationTime: compileDurationMs,
       timestamp: new Date().toISOString(),
       compilerVersion: compilerVersion || undefined,

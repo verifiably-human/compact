@@ -1,0 +1,15 @@
+pragma language_version >= 0.22;
+import CompactStandardLibrary;
+
+witness s(): Secp256k1Scalar;
+export ledger out: Secp256k1Point;
+export ledger j: JubjubPoint;
+witness js(): JubjubScalar;
+
+export circuit secpVar(p: Secp256k1Point): [] {
+  out = disclose(ecMul(p, s()));
+}
+
+export circuit jubVar(p: JubjubPoint): [] {
+  j = disclose(ecMul(p, js()));
+}
