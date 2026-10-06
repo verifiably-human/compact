@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
-  "contract_file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+  "contract_file": "contracts/compliant-token-full.compact",
   "analyzer_version": "1.0.0",
-  "generated_at": "2026-06-12T13:04:57.344Z",
+  "generated_at": "2026-10-06T06:09:34.246Z",
   "policy_assessment": {
     "schemaVersion": "1.0.0",
     "deployRecommendation": "warn",
@@ -24,7 +24,7 @@
         "primitive": "mintShieldedToken",
         "circuit": "mintCustodial",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 272,
           "column": 45
         }
@@ -33,7 +33,7 @@
         "primitive": "receiveShielded",
         "circuit": "mintCustodial",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 278,
           "column": 14
         }
@@ -42,7 +42,7 @@
         "primitive": "mintShieldedToken",
         "circuit": "mintToHolder",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 311,
           "column": 36
         }
@@ -51,7 +51,7 @@
         "primitive": "mintUnshieldedToken",
         "circuit": "prepareWithdraw",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 493,
           "column": 66
         }
@@ -60,7 +60,7 @@
         "primitive": "sendUnshielded",
         "circuit": "executeWithdraw",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 509,
           "column": 25
         }
@@ -69,7 +69,7 @@
         "primitive": "sendShielded",
         "circuit": "shieldedTransfer",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 593,
           "column": 60
         }
@@ -78,7 +78,7 @@
         "primitive": "sendShielded",
         "circuit": "shieldedTransferToContract",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 622,
           "column": 57
         }
@@ -123,7 +123,7 @@
         "primitive": "mintShieldedToken",
         "circuit": "mintCustodial",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 272,
           "column": 45
         },
@@ -133,7 +133,7 @@
         "primitive": "mintShieldedToken",
         "circuit": "mintToHolder",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 311,
           "column": 36
         },
@@ -143,7 +143,7 @@
         "primitive": "mintUnshieldedToken",
         "circuit": "prepareWithdraw",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 493,
           "column": 66
         },
@@ -155,7 +155,7 @@
         "primitive": "sendUnshielded",
         "circuit": "executeWithdraw",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 509,
           "column": 25
         }
@@ -164,7 +164,7 @@
         "primitive": "sendShielded",
         "circuit": "shieldedTransfer",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 593,
           "column": 60
         }
@@ -173,7 +173,7 @@
         "primitive": "sendShielded",
         "circuit": "shieldedTransferToContract",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 622,
           "column": 57
         }
@@ -184,7 +184,7 @@
         "primitive": "receiveShielded",
         "circuit": "mintCustodial",
         "location": {
-          "file": "/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact",
+          "file": "contracts/compliant-token-full.compact",
           "line": 278,
           "column": 14
         }
@@ -237,7 +237,7 @@
   },
   "nonce_analysis": {
     "schemaVersion": "1.0.0",
-    "witnessFile": "/Users/robertblessing-hartley/code/compliant-token/witnesses/compliant-token-witnesses.ts",
+    "witnessFile": "witnesses/compliant-token-witnesses.ts",
     "witnessFileSkipped": false,
     "findings": []
   }

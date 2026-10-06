@@ -13,7 +13,7 @@
   -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'none'; style-src 'unsafe-inline'; img-src data: blob: file:; font-src data:;">
-  <title>Circuit Analysis Report - /Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact</title>
+  <title>Circuit Analysis Report - contracts/compliant-token-full.compact</title>
   <style>
     
       * {
@@ -163,6 +163,7 @@
       }
 
       .complexity-low { color: #28a745; font-weight: 600; }
+      .complexity-unknown { color: #6c757d; font-weight: 600; }
       .complexity-medium { color: #ffc107; font-weight: 600; }
       .complexity-high { color: #fd7e14; font-weight: 600; }
       .complexity-very-high { color: #dc3545; font-weight: 600; }
@@ -743,11 +744,11 @@
     
     <header>
       <h1>🎨 Circuit Analysis Report</h1>
-      <p class="subtitle">/Users/robertblessing-hartley/code/compliant-token/contracts/compliant-token-full.compact</p>
+      <p class="subtitle">contracts/compliant-token-full.compact</p>
       <div class="metadata">
         <div class="metadata-item">
           <span class="metadata-label">Generated</span>
-          <span class="metadata-value">6/12/2026, 9:04:57 AM</span>
+          <span class="metadata-value">10/6/2026, 2:09:34 PM</span>
         </div>
         <div class="metadata-item">
           <span class="metadata-label">Compiler Version</span>
@@ -755,11 +756,22 @@
         </div>
         <div class="metadata-item">
           <span class="metadata-label">Compilation Time</span>
-          <span class="metadata-value">0.36s</span>
+          <span class="metadata-value">0.23s</span>
         </div>
       </div>
     </header>
     
+    
+    <section class="baseline-banner">
+      <h2>Baseline applied</h2>
+      <p>
+        <strong>0</strong> acked,
+        <strong>3</strong> net-new high/critical
+        
+        
+      </p>
+      
+    </section>
     
     <section class="policy-assessment">
       <h2>🚦 Deploy Policy Assessment</h2>
@@ -843,44 +855,23 @@
           <div class="card-value">21</div>
           <div class="card-subtitle">Exported circuits</div>
         </div>
-        <div class="card">
-          <div class="card-title">Total Constraints</div>
-          <div class="card-value">3,186,372</div>
-          <div class="card-subtitle">Sum across circuits (not per-tx)</div>
-        </div>
         <div class="card highlight">
-          <div class="card-title">Worst-case Proving Time</div>
-          <div class="card-value">30.1s</div>
-          <div class="card-subtitle">Slowest single call (mintCustodial)</div>
+          <div class="card-title">Largest k</div>
+          <div class="card-value">15</div>
+          <div class="card-subtitle">mergeTwoCoins (≤ 32,768 rows)</div>
         </div>
         <div class="card">
-          <div class="card-title">Median Proving Time</div>
-          <div class="card-value">8.3s</div>
+          <div class="card-title">Median k</div>
+          <div class="card-value">14</div>
           <div class="card-subtitle">Typical single call</div>
         </div>
         <div class="card">
-          <div class="card-title">Peak Memory</div>
-          <div class="card-value">549 MB</div>
-          <div class="card-subtitle">Slowest single call (mintCustodial)</div>
-        </div>
-        <div class="card">
-          <div class="card-title">Average K-Value</div>
-          <div class="card-value">18.3</div>
-          <div class="card-subtitle">Plonk domain size</div>
+          <div class="card-title">Unknown k</div>
+          <div class="card-value">0</div>
+          <div class="card-subtitle">All circuits sized</div>
         </div>
       </div>
-      <details class="cumulative-metrics">
-        <summary>Cumulative metrics (not a real workload)</summary>
-        <p>The numbers below assume every circuit is proved once in sequence on a single machine.
-        Real users invoke one circuit per transaction; these are useful only for full-test-suite
-        timing budgets, deploy-time stress estimation, or batch-proving infrastructure planning.</p>
-        <ul>
-          <li><strong>If every circuit were proved once (sequential):</strong> 241.1s</li>
-          <li><strong>Sum of per-circuit memory estimates:</strong> 10897 MB
-            <em>(parallel proof workers would each need their own peak memory; this number is not the
-            host's required RAM for normal operation)</em></li>
-        </ul>
-      </details>
+      <p class="note">Proving time roughly doubles with each step of k. It depends on hardware, so measure it on your target machine; it is not estimated here.</p>
     </section>
     
     
@@ -1479,7 +1470,7 @@ Note: pattern-match heuristic, not semantic analysis. May be a false positive.</
     
     <section class="nonce-hygiene">
       <h2>🎲 Nonce Hygiene</h2>
-      <p class="nonce-witness-status">Witness file: <code>/Users/robertblessing-hartley/code/compliant-token/witnesses/compliant-token-witnesses.ts</code></p>
+      <p class="nonce-witness-status">Witness file: <code>witnesses/compliant-token-witnesses.ts</code></p>
       <p class="no-findings">✅ No nonce hygiene issues detected by this analyzer.</p>
     </section>
     
@@ -1490,224 +1481,180 @@ Note: pattern-match heuristic, not semantic analysis. May be a false positive.</
         <thead>
           <tr>
             <th>Circuit</th>
-            <th>Constraints</th>
-            <th>K-Value</th>
-            <th>Proof Size</th>
-            <th>Proving Time</th>
-            <th>Memory</th>
-            <th>Complexity</th>
+            <th>k</th>
+            <th>Rows (≤ 2^k)</th>
+            <th>k source</th>
+            <th>Size</th>
           </tr>
         </thead>
         <tbody>
           
         <tr>
           <td><strong>addAdmin</strong></td>
-          <td>37,572</td>
-          <td>17</td>
-          <td>1.0 KB</td>
-          <td>2.9s</td>
-          <td>505 MB</td>
-          <td><span class="complexity-high">High</span></td>
+          <td>13</td>
+          <td>8,192</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-medium">Medium</span></td>
         </tr>
       
         <tr>
           <td><strong>addToAllowlist</strong></td>
-          <td>61,140</td>
-          <td>17</td>
-          <td>1.0 KB</td>
-          <td>4.7s</td>
-          <td>508 MB</td>
-          <td><span class="complexity-high">High</span></td>
+          <td>13</td>
+          <td>8,192</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-medium">Medium</span></td>
         </tr>
       
         <tr>
           <td><strong>burnCustodial</strong></td>
-          <td>210,780</td>
-          <td>19</td>
-          <td>1.1 KB</td>
-          <td>15.9s</td>
-          <td>526 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>14</td>
+          <td>16,384</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>custodialTransfer</strong></td>
-          <td>285,780</td>
-          <td>20</td>
-          <td>1.1 KB</td>
-          <td>21.5s</td>
-          <td>535 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>14</td>
+          <td>16,384</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>executeWithdraw</strong></td>
-          <td>137,856</td>
-          <td>19</td>
-          <td>1.1 KB</td>
-          <td>10.4s</td>
-          <td>517 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>14</td>
+          <td>16,384</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>forceTransfer</strong></td>
-          <td>187,704</td>
-          <td>19</td>
-          <td>1.1 KB</td>
-          <td>14.2s</td>
-          <td>523 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>14</td>
+          <td>16,384</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>freeze</strong></td>
-          <td>89,088</td>
-          <td>18</td>
-          <td>1.0 KB</td>
-          <td>6.8s</td>
-          <td>511 MB</td>
-          <td><span class="complexity-high">High</span></td>
+          <td>14</td>
+          <td>16,384</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>initializeToken</strong></td>
-          <td>97,656</td>
-          <td>18</td>
-          <td>1.0 KB</td>
-          <td>7.4s</td>
-          <td>512 MB</td>
-          <td><span class="complexity-high">High</span></td>
+          <td>13</td>
+          <td>8,192</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-medium">Medium</span></td>
         </tr>
       
         <tr>
           <td><strong>mergeTwoCoins</strong></td>
-          <td>110,556</td>
-          <td>18</td>
-          <td>1.0 KB</td>
-          <td>8.4s</td>
-          <td>514 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>15</td>
+          <td>32,768</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>mergeWithImmediate</strong></td>
-          <td>109,896</td>
-          <td>18</td>
-          <td>1.0 KB</td>
-          <td>8.3s</td>
-          <td>514 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>15</td>
+          <td>32,768</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>mintCustodial</strong></td>
-          <td>399,984</td>
-          <td>20</td>
-          <td>1.1 KB</td>
-          <td>30.1s</td>
-          <td>549 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>15</td>
+          <td>32,768</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>mintToHolder</strong></td>
-          <td>308,124</td>
-          <td>20</td>
-          <td>1.1 KB</td>
-          <td>23.2s</td>
-          <td>538 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>15</td>
+          <td>32,768</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>pause</strong></td>
-          <td>59,244</td>
-          <td>17</td>
-          <td>1.0 KB</td>
-          <td>4.5s</td>
-          <td>508 MB</td>
-          <td><span class="complexity-high">High</span></td>
+          <td>13</td>
+          <td>8,192</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-medium">Medium</span></td>
         </tr>
       
         <tr>
           <td><strong>prepareWithdraw</strong></td>
-          <td>357,960</td>
-          <td>20</td>
-          <td>1.1 KB</td>
-          <td>26.9s</td>
-          <td>544 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>14</td>
+          <td>16,384</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>removeAdmin</strong></td>
-          <td>35,424</td>
-          <td>17</td>
-          <td>1.0 KB</td>
-          <td>2.8s</td>
-          <td>505 MB</td>
-          <td><span class="complexity-high">High</span></td>
+          <td>13</td>
+          <td>8,192</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-medium">Medium</span></td>
         </tr>
       
         <tr>
           <td><strong>removeFromAllowlist</strong></td>
-          <td>58,992</td>
-          <td>17</td>
-          <td>1.0 KB</td>
-          <td>4.5s</td>
-          <td>508 MB</td>
-          <td><span class="complexity-high">High</span></td>
+          <td>13</td>
+          <td>8,192</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-medium">Medium</span></td>
         </tr>
       
         <tr>
           <td><strong>shieldedTransfer</strong></td>
-          <td>196,608</td>
-          <td>19</td>
-          <td>1.1 KB</td>
-          <td>14.8s</td>
-          <td>524 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>15</td>
+          <td>32,768</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>shieldedTransferToContract</strong></td>
-          <td>223,872</td>
-          <td>19</td>
-          <td>1.1 KB</td>
-          <td>16.9s</td>
-          <td>528 MB</td>
-          <td><span class="complexity-very-high">Very High</span></td>
+          <td>15</td>
+          <td>32,768</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>unfreeze</strong></td>
-          <td>87,924</td>
-          <td>18</td>
-          <td>1.0 KB</td>
-          <td>6.7s</td>
-          <td>511 MB</td>
-          <td><span class="complexity-high">High</span></td>
+          <td>14</td>
+          <td>16,384</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-high">Large</span></td>
         </tr>
       
         <tr>
           <td><strong>unpause</strong></td>
-          <td>36,168</td>
-          <td>17</td>
-          <td>1.0 KB</td>
-          <td>2.8s</td>
-          <td>505 MB</td>
-          <td><span class="complexity-high">High</span></td>
+          <td>13</td>
+          <td>8,192</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-medium">Medium</span></td>
         </tr>
       
         <tr>
           <td><strong>updatePolicy</strong></td>
-          <td>94,044</td>
-          <td>18</td>
-          <td>1.0 KB</td>
-          <td>7.2s</td>
-          <td>512 MB</td>
-          <td><span class="complexity-high">High</span></td>
+          <td>13</td>
+          <td>8,192</td>
+          <td>zkir-v2</td>
+          <td><span class="complexity-medium">Medium</span></td>
         </tr>
       
         </tbody>
@@ -1718,7 +1665,7 @@ Note: pattern-match heuristic, not semantic analysis. May be a false positive.</
     <section>
       <h2>⚡ Performance Insights</h2>
       <div class="insights">
-        <div class="insight-item">11 circuit(s) with very high constraint count (&gt;100K): burnCustodial, custodialTransfer, executeWithdraw, forceTransfer, mergeTwoCoins, mergeWithImmediate, mintCustodial, mintToHolder, prepareWithdraw, shieldedTransfer, shieldedTransferToContract</div><div class="insight-item">1 circuit(s) with slow proving time (&gt;30s): mintCustodial (30.1s)</div>
+        <div class="insight-item">All circuits have k ≤ 16; largest k is 15</div>
       </div>
     </section>
     
@@ -1726,7 +1673,7 @@ Note: pattern-match heuristic, not semantic analysis. May be a false positive.</
     <section>
       <h2>💡 Recommendations</h2>
       <div class="recommendations">
-        <div class="recommendation-item">Consider breaking down high-complexity circuits (addToAllowlist, burnCustodial, custodialTransfer, executeWithdraw, forceTransfer, freeze, initializeToken, mergeTwoCoins, mergeWithImmediate, mintCustodial, mintToHolder, pause, prepareWithdraw, removeFromAllowlist, shieldedTransfer, shieldedTransferToContract, unfreeze, updatePolicy) into smaller sub-circuits for better performance and maintainability</div><div class="recommendation-item">With 21 circuits, consider parallelizing proof generation to reduce overall proving time</div><div class="recommendation-item">Ensure thorough testing of high-complexity circuits (burnCustodial, custodialTransfer, executeWithdraw, forceTransfer, mergeTwoCoins, mergeWithImmediate, mintCustodial, mintToHolder, prepareWithdraw, shieldedTransfer, shieldedTransferToContract) before deployment</div>
+        <div class="recommendation-item">With 21 circuits, consider parallelizing proof generation to reduce overall proving time</div>
       </div>
     </section>
     
@@ -1739,19 +1686,19 @@ Note: pattern-match heuristic, not semantic analysis. May be a false positive.</
       <div class="legend">
         <div class="legend-item">
           <span class="legend-color" style="background-color: #d4edda;"></span>
-          <span class="legend-label">Low Complexity (&lt;1K constraints)</span>
+          <span class="legend-label">Small (k ≤ 10)</span>
         </div>
         <div class="legend-item">
           <span class="legend-color" style="background-color: #fff3cd;"></span>
-          <span class="legend-label">Medium Complexity (1K-10K constraints)</span>
+          <span class="legend-label">Medium (k 11-13)</span>
         </div>
         <div class="legend-item">
           <span class="legend-color" style="background-color: #f8d7da;"></span>
-          <span class="legend-label">High Complexity (10K-100K constraints)</span>
+          <span class="legend-label">Large (k 14-16)</span>
         </div>
         <div class="legend-item">
           <span class="legend-color" style="background-color: #f5c6cb;"></span>
-          <span class="legend-label">Very High Complexity (&gt;100K constraints)</span>
+          <span class="legend-label">Very large (k ≥ 17)</span>
         </div>
       </div>
     

@@ -1,24 +1,25 @@
 digraph PerformanceHeatmap {
   rankdir=TB;
   bgcolor="#FFFFFF";
-  node [shape=box, style=filled, fontname="Arial", fontsize=10];
-  edge [fontname="Arial", fontsize=8];
+  fontcolor="#000000";
+  node [shape=box, style=filled, fontname="Arial", fontsize=10, fontcolor="#000000"];
+  edge [fontname="Arial", fontsize=8, fontcolor="#000000"];
 
-  label="Performance Heatmap\nContract: counter.compact\nTotal Proving Time: 0.8s";
+  label="Circuit Size Heatmap\nContract: counter.compact\nLargest k: 5 (proving time roughly doubles per step of k)";
   labelloc="t";
   fontsize=14;
 
-  "increment" [label="increment\n9,408 constraints\nProving Time: 0.8s\nMemory: 502MB", fillcolor="#FFD700", color="#333333"];
+  "increment" [label="increment\nk=5 (≤ 32 rows)\nk source: zkir-v2", fillcolor="#90EE90", color="#333333"];
 
   subgraph cluster_legend {
-    label="Performance Impact";
+    label="Circuit Size";
     style=filled;
     color="#333333";
     fillcolor="#FFFFFF";
 
-    perf_low [label="Fast\n(<5s)", fillcolor="#90EE90", shape=box];
-    perf_med [label="Moderate\n(5-30s)", fillcolor="#FFD700", shape=box];
-    perf_high [label="Slow\n(30-120s)", fillcolor="#FFA500", shape=box];
-    perf_vhigh [label="Very Slow\n(>120s)", fillcolor="#FF6347", shape=box];
+    perf_low [label="Small\n(k ≤ 10)", fillcolor="#90EE90", shape=box];
+    perf_med [label="Medium\n(k 11-13)", fillcolor="#FFD700", shape=box];
+    perf_high [label="Large\n(k 14-16)", fillcolor="#FFA500", shape=box];
+    perf_vhigh [label="Very large\n(k ≥ 17)", fillcolor="#FF6347", shape=box];
   }
 }

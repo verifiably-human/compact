@@ -95,8 +95,8 @@
       <h1>🛡️ Attack Scenario Analysis</h1>
       <p class="subtitle">election Contract</p>
       <div class="metadata">
-        <span>Generated: 2/3/2026, 3:41:45 PM</span>
-        <span>4 scenarios identified</span>
+        <span>Generated: 10/6/2026, 2:09:37 PM</span>
+        <span>2 scenarios identified</span>
         <span>Risk Score: 55/100</span>
       </div>
     </header>
@@ -113,7 +113,7 @@
           <div class="card-label">High Threats</div>
         </div>
         <div class="summary-card medium">
-          <div class="card-value">2</div>
+          <div class="card-value">0</div>
           <div class="card-label">Medium Threats</div>
         </div>
         <div class="summary-card low">
@@ -127,8 +127,6 @@
         <div class="category-list">
 <div class="category-item"><span class="category-name">Access Control</span><span class="category-count">1</span></div>
 <div class="category-item"><span class="category-name">Input Validation</span><span class="category-count">1</span></div>
-<div class="category-item"><span class="category-name">Transaction Ordering</span><span class="category-count">1</span></div>
-<div class="category-item"><span class="category-name">Availability</span><span class="category-count">1</span></div>
     </div>
       </div>
     </section>
@@ -160,7 +158,7 @@
       <div class="scenario-section">
         <h4>⚔️ Attack Steps</h4>
         <ol class="attack-steps">
-          <li>1. Attacker analyzes contract bytecode to identify unprotected circuits</li><li>2. Attacker calls advance() with malicious parameters</li><li>3. Contract executes without checking caller identity</li><li>4. Attacker successfully modifies contract state</li><li>5. Attacker repeats for other unprotected circuits</li><li>6. Contract state is corrupted or manipulated for attacker benefit</li>
+          <li>1. Attacker reads the deployed contract's ledger state and contract-info.json to identify exported circuits and their guards.</li><li>2. Attacker submits a valid transaction calling advance() with chosen circuit arguments.</li><li>3. Because the circuit body lacks an `assert` tying the caller's witness-known key to the on-chain authority field, the proof verifies without proving authorization.</li><li>4. The ledger applies the state delta atomically.</li><li>5. Attacker repeats for other unguarded circuits.</li>
         </ol>
       </div>
 
@@ -181,12 +179,12 @@
           </div>
           <div class="impact-item full-width">
             <span class="impact-label">Financial Impact:</span>
-            <span class="impact-description">Contract funds at risk; unauthorized state changes; service disruption</span>
+            <span class="impact-description">Operator-controlled state can be mutated by any caller; tokens and compliance fields are at risk depending on contract domain.</span>
           </div>
         </div>
         <div class="exploit-info">
           <span><strong>Exploit Complexity:</strong> low</span>
-          <span><strong>Detection Difficulty:</strong> medium</span>
+          <span><strong>Detection Difficulty:</strong> easy</span>
         </div>
       </div>
 
@@ -196,27 +194,40 @@
           <div class="mitigation-section">
             <h5>Short-term (Immediate)</h5>
             <ul>
-              <li>Deploy contract upgrade with authorization checks</li><li>Pause affected circuits if possible</li><li>Monitor for suspicious transactions</li>
+              <li>Add an authorization assertion at the top of every exported state-mutating circuit.</li><li>If a guard exists but is commented out, restore it.</li><li>Have the contract maintenance authority (where present) freeze further state changes pending a fixed deployment.</li>
             </ul>
           </div>
           <div class="mitigation-section">
             <h5>Long-term (Strategic)</h5>
             <ul>
-              <li>Implement role-based access control (RBAC)</li><li>Add multi-sig requirements for critical operations</li><li>Conduct security audit before deployment</li>
+              <li>Choose an identity model explicitly: single owner key in a sealed ledger field, Merkle-root group membership, or ZK signature over an allow-list.</li><li>For multi-operator contracts, implement an M-of-N membership proof inside the circuit; do not rely on off-chain coordination.</li><li>Audit every exported circuit's first statement before deployment.</li>
             </ul>
           </div>
         </div>
         
         <div class="code-example">
           <h5>Code Example</h5>
-          <pre><code>// Add authorization check to every state-mutating circuit:
-circuit protected_operation(secret_key: Bytes&lt;32&gt;): [] {
-  // Verify caller is authorized
-  assert(
-    public_key(secret_key) == authority.read(),
-    "Unauthorized: only contract authority can call this"
-  );
+          <pre><code>// Real Compact authorization pattern.
+//
+// Owner identity is the persistentHash of a witness-known secret key,
+// stored once in a sealed ledger field.
 
+witness ownerSecret(): Bytes&lt;32&gt;;
+sealed ledger ownerKey: Bytes&lt;32&gt;;
+
+circuit requireOwner(): [] {
+  const sk = ownerSecret();
+  const provided = persistentHash&lt;Vector&lt;2, Bytes&lt;32&gt;&gt;&gt;(
+    [pad(32, "domain:owner:"), sk]
+  );
+  // Critical: assert against the ledger value directly. Do NOT wrap
+  // the equality in disclose() — that exposes the boolean to the
+  // ledger but the assert is what gates the circuit.
+  assert(provided == ownerKey, "not owner");
+}
+
+export circuit protectedOperation(...): [] {
+  requireOwner();
   // ... rest of circuit logic
 }</code></pre>
         </div>
@@ -234,7 +245,7 @@ circuit protected_operation(secret_key: Bytes&lt;32&gt;): [] {
       <div class="scenario-section">
         <h4>📚 References</h4>
         <ul class="references">
-          <li>OWASP Smart Contract Top 10 - Access Control</li><li>SWC-105: Unprotected Ether Withdrawal</li>
+          <li>midnight-ledger contract maintenance authority (ledger/src/structure.rs)</li><li>compact-core:compact-patterns — access control patterns for Midnight</li>
         </ul>
       </div>
     </div>
@@ -312,20 +323,30 @@ circuit protected_operation(secret_key: Bytes&lt;32&gt;): [] {
         
         <div class="code-example">
           <h5>Code Example</h5>
-          <pre><code>// Validate all user inputs:
-circuit set_value(user_input: Field): [] {
-  // Validate input bounds
-  assert(user_input &gt;= MIN_VALUE, "Input too small");
-  assert(user_input &lt;= MAX_VALUE, "Input too large");
+          <pre><code>// Real Compact input validation.
+//
+// Note: Compact's Uint&lt;n&gt; types are range-constrained at the type
+// level. Passing a value outside the declared range causes the proof
+// to fail verification — there is no silent wrap-around (SWC-101 does
+// NOT apply). The real risk is unasserted invariants on Field-typed
+// values, where the field arithmetic is unbounded.
 
-  // Validate state preconditions
-  assert(state.read() == ValidState, "Invalid state");
+ledger state: STATE;
+ledger value: Field;
+enum STATE { unset, set }
 
-  // Update state
-  value.write(user_input);
+export circuit setValue(userInput: Field): [] {
+  // Field-typed input has no implicit bound. If you need one,
+  // assert it explicitly:
+  assert(userInput &lt; 1000, "Input out of range");
 
-  // Verify state invariants
-  assert(check_invariants(), "Invariant violation");
+  // State precondition is read directly from the ledger field.
+  assert(state == STATE.unset, "Invalid state");
+
+  // Ledger writes are field assignments wrapped in disclose() for any
+  // value that originated from a witness.
+  value = disclose(userInput);
+  state = STATE.set;
 }</code></pre>
         </div>
       </div>
@@ -342,181 +363,7 @@ circuit set_value(user_input: Field): [] {
       <div class="scenario-section">
         <h4>📚 References</h4>
         <ul class="references">
-          <li>OWASP Input Validation</li><li>SWC-101: Integer Overflow and Underflow</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="scenario medium">
-      <div class="scenario-header">
-        <h3><span class="scenario-id">GEN-1</span> Front-Running Attack</h3>
-        <div class="scenario-badges">
-          <span class="badge severity-medium">MEDIUM</span>
-          <span class="badge category">Transaction Ordering</span>
-          <span class="badge complexity-medium">MEDIUM complexity</span>
-        </div>
-      </div>
-
-      <div class="scenario-description">
-        Attacker observes pending transactions and submits their own with higher fees to execute first.
-      </div>
-
-      <div class="scenario-section">
-        <h4>💡 Preconditions</h4>
-        <ul>
-          <li>Public mempool visibility</li><li>Transaction order matters for contract logic</li><li>Attacker can submit higher fee transactions</li>
-        </ul>
-      </div>
-
-      <div class="scenario-section">
-        <h4>⚔️ Attack Steps</h4>
-        <ol class="attack-steps">
-          <li>1. Attacker monitors mempool for profitable transactions</li><li>2. Attacker identifies target transaction with value</li><li>3. Attacker quickly crafts similar transaction</li><li>4. Attacker submits with higher transaction fee</li><li>5. Attacker transaction executes first</li><li>6. Original transaction fails or gets unfavorable outcome</li>
-        </ol>
-      </div>
-
-      <div class="scenario-section">
-        <h4>💥 Impact Assessment</h4>
-        <div class="impact-grid">
-          <div class="impact-item">
-            <span class="impact-label">Confidentiality:</span>
-            <span class="impact-value none">none</span>
-          </div>
-          <div class="impact-item">
-            <span class="impact-label">Integrity:</span>
-            <span class="impact-value medium">medium</span>
-          </div>
-          <div class="impact-item">
-            <span class="impact-label">Availability:</span>
-            <span class="impact-value none">none</span>
-          </div>
-          <div class="impact-item full-width">
-            <span class="impact-label">Financial Impact:</span>
-            <span class="impact-description">Loss of value to front-runner; unfair transaction ordering</span>
-          </div>
-        </div>
-        <div class="exploit-info">
-          <span><strong>Exploit Complexity:</strong> medium</span>
-          <span><strong>Detection Difficulty:</strong> easy</span>
-        </div>
-      </div>
-
-      <div class="scenario-section">
-        <h4>🛡️ Mitigation Strategies</h4>
-        <div class="mitigation">
-          <div class="mitigation-section">
-            <h5>Short-term (Immediate)</h5>
-            <ul>
-              <li>Use commit-reveal schemes</li><li>Implement time-locks</li><li>Add transaction ordering protections</li>
-            </ul>
-          </div>
-          <div class="mitigation-section">
-            <h5>Long-term (Strategic)</h5>
-            <ul>
-              <li>Use private mempools</li><li>Implement fair ordering protocols</li><li>Add MEV protection mechanisms</li>
-            </ul>
-          </div>
-        </div>
-        
-      </div>
-
-      
-
-      
-      <div class="scenario-section">
-        <h4>📚 References</h4>
-        <ul class="references">
-          <li>Flashbots - MEV Protection</li><li>Front-Running in Blockchain</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="scenario medium">
-      <div class="scenario-header">
-        <h3><span class="scenario-id">GEN-2</span> Denial of Service via Resource Exhaustion</h3>
-        <div class="scenario-badges">
-          <span class="badge severity-medium">MEDIUM</span>
-          <span class="badge category">Availability</span>
-          <span class="badge complexity-low">LOW complexity</span>
-        </div>
-      </div>
-
-      <div class="scenario-description">
-        Attacker submits transactions that consume excessive resources, preventing legitimate use.
-      </div>
-
-      <div class="scenario-section">
-        <h4>💡 Preconditions</h4>
-        <ul>
-          <li>No rate limiting on circuit calls</li><li>No resource consumption limits</li><li>Attacker has sufficient DUST for fees</li>
-        </ul>
-      </div>
-
-      <div class="scenario-section">
-        <h4>⚔️ Attack Steps</h4>
-        <ol class="attack-steps">
-          <li>1. Attacker identifies resource-intensive circuits</li><li>2. Attacker submits many transactions in rapid succession</li><li>3. Proof servers become overloaded</li><li>4. Legitimate transactions timeout or fail</li><li>5. Contract becomes unusable for honest users</li><li>6. Attacker continues until impact achieved</li>
-        </ol>
-      </div>
-
-      <div class="scenario-section">
-        <h4>💥 Impact Assessment</h4>
-        <div class="impact-grid">
-          <div class="impact-item">
-            <span class="impact-label">Confidentiality:</span>
-            <span class="impact-value none">none</span>
-          </div>
-          <div class="impact-item">
-            <span class="impact-label">Integrity:</span>
-            <span class="impact-value none">none</span>
-          </div>
-          <div class="impact-item">
-            <span class="impact-label">Availability:</span>
-            <span class="impact-value high">high</span>
-          </div>
-          <div class="impact-item full-width">
-            <span class="impact-label">Financial Impact:</span>
-            <span class="impact-description">Service disruption; lost revenue; reputational damage</span>
-          </div>
-        </div>
-        <div class="exploit-info">
-          <span><strong>Exploit Complexity:</strong> low</span>
-          <span><strong>Detection Difficulty:</strong> easy</span>
-        </div>
-      </div>
-
-      <div class="scenario-section">
-        <h4>🛡️ Mitigation Strategies</h4>
-        <div class="mitigation">
-          <div class="mitigation-section">
-            <h5>Short-term (Immediate)</h5>
-            <ul>
-              <li>Implement rate limiting per address</li><li>Add proof generation timeouts</li><li>Deploy additional proof servers</li>
-            </ul>
-          </div>
-          <div class="mitigation-section">
-            <h5>Long-term (Strategic)</h5>
-            <ul>
-              <li>Optimize circuit complexity</li><li>Implement adaptive fee mechanisms</li><li>Add reputation-based prioritization</li><li>Deploy distributed proof generation</li>
-            </ul>
-          </div>
-        </div>
-        
-      </div>
-
-      
-      <div class="scenario-section">
-        <h4>🎯 Affected Circuits</h4>
-        <div class="affected-circuits">
-          <span class="circuit-tag">add_voter</span> <span class="circuit-tag">advance</span> <span class="circuit-tag">set_topic</span> <span class="circuit-tag">vote$commit</span> <span class="circuit-tag">vote$reveal</span>
-        </div>
-      </div>
-
-      
-      <div class="scenario-section">
-        <h4>📚 References</h4>
-        <ul class="references">
-          <li>Blockchain DoS Attacks</li><li>Resource Exhaustion Attacks</li>
+          <li>Compact Uint<n> types — range-constrained at the type level</li><li>compact-core:compact-language-ref — type semantics</li>
         </ul>
       </div>
     </div>

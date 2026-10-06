@@ -1,0 +1,15 @@
+digraph StateFlow {
+  rankdir=LR;
+  bgcolor="#FFFFFF";
+  fontcolor="#000000";
+  node [fontname="Arial", fontsize=10, fontcolor="#000000"];
+  edge [fontname="Arial", fontsize=8, fontcolor="#000000"];
+
+  label="State Flow Diagram\nContract: counter.compact";
+  labelloc="t";
+  fontsize=14;
+
+  note [shape=note, fillcolor="#FFFFFF", color="#333333", fontcolor="#000000",
+        label="No state variables found.\nContract may use external state or be stateless."];
+  "increment" [label="increment", fillcolor="#B0C4DE", shape=box, style=filled, color="#333333"];
+}

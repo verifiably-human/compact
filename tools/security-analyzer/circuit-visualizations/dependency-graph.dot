@@ -1,14 +1,16 @@
 digraph CircuitDependencies {
   rankdir=TB;
   bgcolor="#FFFFFF";
-  node [shape=box, style=filled, fontname="Arial", fontsize=10];
-  edge [fontname="Arial", fontsize=8];
+  fontcolor="#000000";
+  node [shape=box, style=filled, fontname="Arial", fontsize=10, fontcolor="#000000"];
+  edge [fontname="Arial", fontsize=8, fontcolor="#000000"];
 
-  label="Circuit Dependency Graph\nContract: counter.compact\nCircuits: 1 | Total Constraints: 9,408";
+  label="Circuit Dependency Graph\nContract: counter.compact\nCircuits: 1 | Largest k: 5";
   labelloc="t";
   fontsize=14;
 
-  "increment" [label="increment\n9,408 constraints\nK=15", fillcolor="#FFD700", color="#333333"];
+  "increment" [label="increment\nk=5 (≤ 32 rows)", fillcolor="#90EE90", color="#333333"];
+
 
   subgraph cluster_legend {
     label="Legend";
@@ -16,9 +18,9 @@ digraph CircuitDependencies {
     color="#333333";
     fillcolor="#FFFFFF";
 
-    legend_low [label="Low Complexity\n(<1K constraints)", fillcolor="#90EE90", shape=box];
-    legend_med [label="Medium Complexity\n(1K-10K constraints)", fillcolor="#FFD700", shape=box];
-    legend_high [label="High Complexity\n(10K-100K constraints)", fillcolor="#FFA500", shape=box];
-    legend_vhigh [label="Very High Complexity\n(>100K constraints)", fillcolor="#FF6347", shape=box];
+    legend_low [label="Small\n(k ≤ 10)", fillcolor="#90EE90", shape=box];
+    legend_med [label="Medium\n(k 11-13)", fillcolor="#FFD700", shape=box];
+    legend_high [label="Large\n(k 14-16)", fillcolor="#FFA500", shape=box];
+    legend_vhigh [label="Very large\n(k ≥ 17)", fillcolor="#FF6347", shape=box];
   }
 }

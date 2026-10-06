@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "contract_file": "examples/election.compact",
+  "analyzer_version": "1.0.0",
+  "generated_at": "2026-10-06T06:09:37.183Z",
+  "policy_assessment": {
+    "schemaVersion": "1.0.0",
+    "deployRecommendation": "warn",
+    "reasons": [
+      {
+        "rule": "high-severity-security-findings",
+        "severity": "warn",
+        "message": "4 high-severity security finding(s): [Heuristic] Missing authorization check: advance; [Heuristic] Missing authorization check: set_topic; [Heuristic] Missing authorization check: add_voter (and 1 more)"
+      }
+    ]
+  },
+  "profile": {
+    "schemaVersion": "1.0.0",
+    "valuePosture": "none",
+    "privacyPosture": "selective",
+    "authorityModel": "permissionless",
+    "tokenPrimitives": [],
+    "ledgerSurface": {
+      "fieldsTotal": 9,
+      "fieldsSealed": 0,
+      "balanceLike": [],
+      "commitmentLike": [],
+      "nullifierLike": [],
+      "counterLike": [
+        "tally_yes",
+        "tally_no"
+      ],
+      "keyLike": [
+        "authority"
+      ]
+    },
+    "externalCustodyHints": [],
+    "circuitCount": 9,
+    "exportedCircuitCount": 3,
+    "witnessFunctionCount": 7
+  },
+  "value_inventory": {
+    "schemaVersion": "1.0.0",
+    "mintOperations": [],
+    "sendOperations": [],
+    "receiveOperations": [],
+    "balanceFields": [],
+    "commitmentNullifierPairs": [],
+    "maintenanceAuthorityRefs": [],
+    "maxSupplyConstraints": [],
+    "offChainCustodySignals": [],
+    "valueAtRiskSummary": {
+      "estimatedClass": "voting",
+      "isUnboundedMint": false,
+      "isValueHolding": false
+    }
+  },
+  "nonce_analysis": {
+    "schemaVersion": "1.0.0",
+    "witnessFile": null,
+    "witnessFileSkipped": true,
+    "findings": []
+  }
+}
